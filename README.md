@@ -57,18 +57,6 @@ Para rodar este projeto localmente, você precisará ter o Docker e o Docker Com
     flutter run
     ```
 
-## 🤝 Como Contribuir
-
-Este é um projeto de código aberto e contribuições são muito bem-vindas! Se você tem alguma ideia, sugestão ou quer corrigir um bug, sinta-se à vontade para:
-
-1.  Fazer um **Fork** deste repositório.
-2.  Criar uma nova **Branch** (`git checkout -b feature/sua-feature-incrivel`).
-3.  Fazer o **Commit** das suas alterações (`git commit -m 'Adiciona sua feature incrível'`).
-4.  Fazer o **Push** para a Branch (`git push origin feature/sua-feature-incrivel`).
-5.  Abrir um **Pull Request**.
-
-Por favor, leia nosso arquivo `CONTRIBUTING.md` para mais detalhes sobre nosso código de conduta.
-
 ## 📄 Licença
 
 Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE.md) para mais detalhes.
