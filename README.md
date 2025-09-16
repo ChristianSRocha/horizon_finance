@@ -57,6 +57,6 @@ Para rodar este projeto localmente, você precisará ter o Docker e o Docker Com
     flutter run
     ```
 
-## 📄 Licença
+## 📄 Mais informações
 
-Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE.md) para mais detalhes.
+Para mais informações pode acessar a nossa página do [Notion](https://matheusoms.notion.site/Horizon-Finance-PI-5-24ca606e946680a3a698cf68c3aa114c?pvs=74)
