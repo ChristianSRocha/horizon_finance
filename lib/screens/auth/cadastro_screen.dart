@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'horizon_finance/screens/auth/renda_mensal_screen.dart';
+import 'package:horizon_finance/screens/auth/renda_mensal_screen.dart';
 
 class CadastroScreen extends StatefulWidget {
   const CadastroScreen({super.key});
@@ -56,22 +56,33 @@ class _CadastroScreenState extends State<CadastroScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final Color primaryGreen = Theme.of(context).primaryColor;
+    final Color primaryNavy = Theme.of(context).primaryColor;
     const Color cardColor = Colors.white;
 
     return Scaffold(
-      body: Center(
+      body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 32.0, vertical: 40.0),
-          child: Card(
-            color: cardColor,
-            elevation: 8,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
+          padding: EdgeInsets.symmetric(
+            horizontal: MediaQuery.of(context).size.width * 0.05,
+            vertical: MediaQuery.of(context).size.height * 0.02,
+          ),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              minHeight: MediaQuery.of(context).size.height * 0.8,
             ),
-            margin: EdgeInsets.zero,
-            child: Padding(
-              padding: const EdgeInsets.all(30.0),
+            child: Card(
+              color: cardColor,
+              elevation: 8,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
+              margin: EdgeInsets.symmetric(
+                horizontal: MediaQuery.of(context).size.width * 0.02,
+              ),
+              child: Padding(
+                padding: EdgeInsets.all(
+                  MediaQuery.of(context).size.width * 0.06,
+                ),
               child: Form(
                 key: _formKey,
                 child: Column(
@@ -84,7 +95,7 @@ class _CadastroScreenState extends State<CadastroScreen> {
                       style: TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
-                        color: primaryGreen,
+                        color: primaryNavy,
                       ),
                     ),
                     const SizedBox(height: 5),
@@ -99,20 +110,20 @@ class _CadastroScreenState extends State<CadastroScreen> {
                     const SizedBox(height: 35),
 
                     _buildLabel('E-mail'),
-                    _buildEmailInputField(primaryGreen, _emailController),
+                    _buildEmailInputField(primaryNavy, _emailController),
                     const SizedBox(height: 20),
 
                     _buildLabel('Senha'),
-                    _buildPasswordInputField('•••••••••', primaryGreen, _passwordController),
+                    _buildPasswordInputField('•••••••••', primaryNavy, _passwordController),
                     const SizedBox(height: 20),
 
                     _buildLabel('Confirmar Senha'),
-                    _buildConfirmPasswordInputField('•••••••••', primaryGreen, _confirmPasswordController, _passwordController),
+                    _buildConfirmPasswordInputField('•••••••••', primaryNavy, _confirmPasswordController, _passwordController),
                     const SizedBox(height: 30),
 
                     _buildPrimaryButton(
                       text: _isLoading ? 'Cadastrando...' : 'Criar Conta',
-                      color: primaryGreen,
+                      color: primaryNavy,
                       textColor: Colors.white,
                       onPressed: _isLoading ? null : _handleCadastro,
                       isLoading: _isLoading,
@@ -128,8 +139,8 @@ class _CadastroScreenState extends State<CadastroScreen> {
 
                     _buildSecondaryButton(
                       text: 'Fazer Login',
-                      borderColor: primaryGreen.withOpacity(0.5),
-                      textColor: primaryGreen.withOpacity(0.9),
+                      borderColor: primaryNavy.withOpacity(0.5),
+                      textColor: primaryNavy,
                       onPressed: () {
                         Navigator.of(context).pop();
                       },
@@ -305,3 +316,4 @@ class _CadastroScreenState extends State<CadastroScreen> {
     );
   }
 }
+
