@@ -1,62 +1,95 @@
 # Horizon Finance
 
-![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
+**Seu futuro financeiro começa aqui.**
 
-Um aplicativo de finanças pessoal, open source e focado em simplicidade, que não apenas rastreia seus gastos, mas também projeta a saúde financeira do seu futuro.
+Horizon Finance é uma aplicação mobile de controle financeiro pessoal, focada em simplicidade, visualização de dados e análise preditiva. O projeto visa resolver a baixa aderência de usuários a ferramentas de controle financeiro, que muitas vezes são complexas ou exigem inserção manual de dados em planilhas.
 
-## 🎯 Sobre o Projeto
+Nossa principal proposta é transportar o controle financeiro para a palma da sua mão, simplificando ao máximo o registro de transações e oferecendo um diferencial claro: a **capacidade de prever sua saúde financeira futura** com base em seus hábitos, ajudando você a tomar decisões mais informadas.
 
-A maioria das ferramentas de controle financeiro falha por ser complexa demais ou por exigir um esforço manual muito grande. Este projeto nasceu para resolver esse problema, oferecendo uma experiência de usuário fluida e intuitiva, com um diferencial claro: **análise preditiva**.
+## 🎯 Proposta do Projeto
 
-O objetivo é capacitar os usuários a tomarem decisões mais inteligentes, fornecendo uma visão clara do passado, presente e, mais importante, do futuro de suas finanças.
+O objetivo geral do Horizon Finance é desenvolver uma aplicação mobile multiplataforma (iOS e Android) que permita ao usuário ter uma visualização clara de suas finanças passadas, presentes e **futuras**.
 
-### ✨ Funcionalidades Principais (MVP)
+O projeto ataca duas dores principais:
+1.  **Alta Fricção:** A dificuldade e a falta de praticidade em registrar gastos diários, que leva ao abandono de ferramentas de controle.
+2.  **Visão Reativa:** Ferramentas tradicionais focam apenas no "o que você gastou". Nós focamos em "para onde você está indo", permitindo ajustes de curso antes que os problemas ocorram.
 
-* **📊 Dashboard Preditivo:** Visualize seu saldo atual e veja uma projeção de como ele estará nos próximos 30, 60 ou 90 dias com base nos seus hábitos.
-* **💸 Registro Simplificado:** Adicione receitas e despesas de forma rápida, com um sistema de categorização inteligente.
-* **🔄 Transações Recorrentes:** Cadastre aluguéis, assinaturas e outras contas fixas uma única vez.
-* **🏆 Metas Visuais:** Crie metas financeiras e acompanhe seu progresso de forma motivadora.
-* **📄 Importação de Extratos:** Comece a usar rapidamente importando seus extratos bancários em formato CSV/OFX.
+## 🛠️ Arquitetura e Tecnologias
 
-## 🛠️ Tecnologias Utilizadas
+A arquitetura foi escolhida visando performance, desenvolvimento ágil, custos operacionais nulos ou baixos e a filosofia de código aberto.
 
-A arquitetura do projeto foi escolhida com foco em performance, desenvolvimento ágil, baixo custo e na filosofia open source.
+* **Frontend (Mobile):** **Flutter**
+    * **Por quê?** Framework de código aberto que nos permite compilar para iOS e Android a partir de um único código-base, garantindo agilidade no desenvolvimento e performance nativa.
+    * **Gerenciamento de Estado:** **Provider**, para uma gestão de estado reativa e desacoplada da UI.
 
-* **Frontend (Mobile):** [**Flutter**](https://flutter.dev/) - Para um desenvolvimento multiplataforma (iOS & Android) com um único código-base.
-* **Backend:** [**Supabase**](https://supabase.io/) - Uma alternativa open source ao Firebase, oferecendo banco de dados, autenticação, e Edge Functions.
-* **Banco de Dados:** [**PostgreSQL**](https://www.postgresql.org/) - Robusto, confiável e escalável, é o coração do Supabase.
-* **Infraestrutura:** [**Docker**](https://www.docker.com/) - Para facilitar a configuração do ambiente de desenvolvimento e permitir a auto-hospedagem (self-hosting).
+* **Backend (BaaS):** **Supabase (Cloud)**
+    * **Por quê?** É uma plataforma "Backend-as-a-Service" open-source que nos fornece instantaneamente toda a infraestrutura necessária, hospedada na nuvem.
 
-## 🚀 Como Começar (Ambiente de Desenvolvimento)
+* **Banco de Dados:** **PostgreSQL**
+    * **Por quê?** É o banco de dados padrão do Supabase, conhecido por sua robustez e escalabilidade, ideal para dados financeiros estruturados. A segurança é garantida por políticas de **Row Level Security (RLS)**, assegurando que cada usuário só possa acessar seus próprios dados.
 
-Para rodar este projeto localmente, você precisará ter o Docker e o Docker Compose instalados.
+* **Lógica de Servidor (Serverless):** **Supabase Edge Functions**
+    * **Por quê?** Usadas para executar lógica de negócio customizada (escrita em TypeScript), como calcular resumos de relatórios ou, principalmente, atuar como um *broker* seguro para chamadas a APIs de terceiros.
 
-1.  **Clone o repositório:**
-    ```bash
-    git clone https://github.com/](https://github.com/)matheusoms/horizon_finance.git](https://github.com/matheusoms/horizon_finance.git
-    ```
+* **Inteligência Artificial (IA):** **Gemini API**
+    * **Por quê?** Utilizada para fornecer os insights preditivos e generativos. A API é chamada de forma segura através de uma Edge Function, que envia o histórico financeiro anonimizado do usuário e recebe em troca uma análise e dicas.
 
-2.  **Navegue até o diretório do projeto:**
-    ```bash
-    cd horizon_finance
-    ```
+## ✨ Funcionalidades (MVP + IA)
 
-3.  **Configure as variáveis de ambiente:**
-    * Renomeie o arquivo `.env.example` para `.env`.
-    * Preencha as variáveis necessárias conforme as instruções no próprio arquivo.
+O escopo do produto visa entregar um ciclo de valor completo, desde o cadastro até a análise preditiva.
 
-4.  **Inicie os containers com Docker Compose:**
-    ```bash
-    docker-compose up -d
-    ```
+* **Autenticação e Onboarding:**
+    * Cadastro de usuário e autenticação (Email/Senha).
+    * Configuração inicial guiada para cadastro de renda mensal e despesas fixas recorrentes.
 
-5.  **Comece a desenvolver com Flutter:**
-    * Certifique-se de ter o Flutter instalado e configurado.
-    * Execute o app em um emulador ou dispositivo físico.
-    ```bash
-    flutter run
-    ```
+* **Dashboard Preditivo (Core):**
+    * Visualização clara do **saldo atual**.
+    * Gráfico de **projeção de saldo** para os próximos 90 dias, baseado nos hábitos atuais do usuário.
+    * Listagem de atividades recentes.
 
-## 📄 Mais informações
+* **Gerenciamento de Transações (CRUD):**
+    * Formulário simplificado para registro rápido de receitas e despesas manuais.
+    * Sistema de categorização de transações (Moradia, Lazer, etc.).
+    * Edição e exclusão de lançamentos.
 
-Para mais informações pode acessar a nossa página do [Notion](https://matheusoms.notion.site/Horizon-Finance-PI-5-24ca606e946680a3a698cf68c3aa114c?pvs=74)
+* **Relatórios Visuais:**
+    * Resumo de receitas, despesas e saldo por período.
+    * Gráfico de despesas por categoria (pizza ou rosca).
+    * Comparativo de fluxo semanal (Receita vs. Despesa).
+
+* **Metas Financeiras:**
+    * Criação de metas de poupança (ex: "Viagem", "Reserva de Emergência").
+    * Acompanhamento visual do progresso para cada meta.
+
+* **Insights com IA (O Diferencial):**
+    * O app utiliza a API do Gemini para analisar o histórico de transações do usuário.
+    * O usuário recebe **insights generativos e dicas** (ex: "Notei que seus gastos com 'Transporte' estão 20% acima da média" ou "Seu saldo atual sugere que você atingirá sua meta em 3 meses").
+
+## 🌊 Fluxograma da Arquitetura (IA)
+
+Este diagrama de sequência ilustra o fluxo principal de dados para obter a análise preditiva da IA, desde a requisição do usuário no app Flutter até a resposta da API do Gemini, orquestrada pelo Supabase.
+
+```mermaid
+sequenceDiagram
+    participant User as Usuário (App Flutter)
+    participant Supabase_Auth as Supabase (Autenticação)
+    participant Supabase_DB as Supabase (Banco de Dados)
+    participant Edge_Function as Supabase (Edge Function)
+    participant Gemini as Gemini API
+
+    User->>Supabase_Auth: 1. Login/Requisição com Token JWT
+    Supabase_Auth-->>User: Token Validado
+
+    User->>Edge_Function: 2. Chama a função `get-financial-forecast`
+    Note over Edge_Function: A função extrai o ID do usuário do Token JWT
+
+    Edge_Function->>Supabase_DB: 3. Busca o histórico de transações<br/>(SELECT * WHERE user_id = 'ID_do_usuário')
+    Note over Supabase_DB: RLS garante que a função<br/>só acesse os dados do usuário correto
+    Supabase_DB-->>Edge_Function: 4. Retorna o histórico do usuário
+
+    Edge_Function->>Gemini: 5. Envia o histórico (JSON) para análise<br/>(chamada de API stateless)
+    Gemini-->>Edge_Function: 6. Retorna a projeção e os insights (JSON)
+
+    Edge_Function-->>User: 7. Envia o resultado final para o App
+
+    User->>User: 8. Renderiza o gráfico e exibe os insights
