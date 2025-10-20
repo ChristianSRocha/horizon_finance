@@ -58,7 +58,7 @@ class AuthService extends Notifier<AuthState> {
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
-        errorMessage: 'Erro ao criar conta: ${e.toString()}',
+        errorMessage: 'Erro ao criar sua conta: ${e.toString()}',
       );
       rethrow;
     }
