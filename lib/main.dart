@@ -1,23 +1,5 @@
-// lib/main.dart
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:horizon_finance/screens/auth/login_cadastro_screen.dart';
-
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  
-  await Supabase.initialize(
-    url: 'YOUR_SUPABASE_URL', // Pegar no dashboard do Supabase
-    anonKey: 'YOUR_SUPABASE_ANON_KEY', // Pegar no dashboard do Supabase
-  );
-
-  runApp(
-    const ProviderScope(
-      child: HorizonsFinanceApp(),
-    ),
-  );
-}
 
 class HorizonsFinanceApp extends StatelessWidget {
   const HorizonsFinanceApp({super.key});
@@ -42,4 +24,8 @@ class HorizonsFinanceApp extends StatelessWidget {
       home: const LoginCadastroScreen(),
     );
   }
+}
+
+void main() {
+  runApp(const HorizonsFinanceApp());
 }
