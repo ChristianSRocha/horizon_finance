@@ -8,7 +8,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
   await Supabase.initialize(
-    url: 'https://qtneqexgrvkfcqtgypyl.supabase.co', // Pegar no dashboard do Supabase
+    url: 'https://qtneqexgrvkfcqtgypyl.supabase.co', // Pegar no dashboard do Supabase(Essa é a da minha organização teste)
     anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF0bmVxZXhncnZrZmNxdGd5cHlsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA4NzgzNTIsImV4cCI6MjA3NjQ1NDM1Mn0.WwsUCPjKoyRuKeweYSIXoWvjlxwEvSuR3hBQEpdw7k4', // Pegar no dashboard do Supabase
   );
 
