@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:horizon_finance/screens/goals/goals_screen.dart';
+import 'package:horizon_finance/screens/reports/reports_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -8,7 +10,7 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
-  // Simulação de dados (será substituído pelo backend)
+  // Simulação de dados
   final double saldoAtual = 12500.75;
   final double receitasMes = 8500.00;
   final double despesasMes = 7200.25;
@@ -24,9 +26,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
-            // --- 1. HEADER (BEM-VINDO e ÍCONE) ---
+            // --- 1. HEADER ---
             _buildHeader(primaryBlue),
-            
+
             Padding(
               padding: const EdgeInsets.all(16.0),
               child: Column(
@@ -43,7 +45,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   // --- 4. METAS EM ANDAMENTO ---
                   _buildGoalsSection(primaryBlue),
                   const SizedBox(height: 25),
-                  
+
                   // --- 5. ATIVIDADE RECENTE ---
                   _buildRecentActivitySection(primaryBlue),
                 ],
@@ -53,8 +55,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
         ),
       ),
       // Navegação inferior
-      bottomNavigationBar: _buildBottomNavBar(primaryBlue),
-      
+      bottomNavigationBar: _buildBottomNavBar(context, primaryBlue),
+
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           // TODO: Abrir modal de Nova Transação
@@ -71,9 +73,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Widget _buildHeader(Color primaryBlue) {
     return Container(
       padding: const EdgeInsets.fromLTRB(20, 50, 20, 20),
-      // MANTÉM O FUNDO BRANCO PARA O LOOK CLEAN
       decoration: const BoxDecoration(
-        color: Colors.white, 
+        color: Colors.white,
         borderRadius: BorderRadius.only(
           bottomLeft: Radius.circular(30),
           bottomRight: Radius.circular(30),
@@ -87,7 +88,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
             children: [
               Text(
                 'Bem-vindo ao Horizons Finance!',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF424242)),
+                style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF424242)),
               ),
               SizedBox(height: 5),
               Text(
@@ -118,7 +122,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Saldo Atual', style: TextStyle(fontSize: 16, color: Colors.grey)),
+            const Text('Saldo Atual',
+                style: TextStyle(fontSize: 16, color: Colors.grey)),
             const SizedBox(height: 5),
             Text(
               'R\$ ${saldoAtual.toStringAsFixed(2).replaceAll('.', ',')}',
@@ -133,16 +138,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 _buildIncomeExpenseItem(
-                  label: 'Receitas', 
-                  amount: receitasMes, 
-                  // Usando o Verde do tema secundário (2e7d32) para receitas
-                  color: const Color(0xFF2E7D32), 
+                  label: 'Receitas',
+                  amount: receitasMes,
+                  color: const Color(0xFF2E7D32), // Verde para Receita
                 ),
                 _buildIncomeExpenseItem(
-                  label: 'Despesas', 
-                  amount: despesasMes, 
-                  // Usando o Vermelho de Alerta (e53935)
-                  color: const Color(0xFFE53935), 
+                  label: 'Despesas',
+                  amount: despesasMes,
+                  color: const Color(0xFFE53935), // Vermelho para Despesa
                 ),
               ],
             ),
@@ -151,8 +154,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ),
     );
   }
-  
-  Widget _buildIncomeExpenseItem({required String label, required double amount, required Color color}) {
+
+  Widget _buildIncomeExpenseItem(
+      {required String label, required double amount, required Color color}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -218,7 +222,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ),
         ),
         const SizedBox(height: 10),
-        // Placeholder simples para as Metas
         _buildGoalProgress('Reserva de Emergência', 0.65, primaryBlue),
         _buildGoalProgress('Carro Novo', 0.20, primaryBlue),
       ],
@@ -253,7 +256,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ),
     );
   }
-  
+
   Widget _buildRecentActivitySection(Color primaryBlue) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -267,16 +270,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ),
         ),
         const SizedBox(height: 10),
-        // Simulação de transações
         _buildRecentTransaction('Salário', '+ R\$ 5.000,00', true),
         _buildRecentTransaction('Aluguel', '- R\$ 1.500,00', false),
       ],
     );
   }
 
-  Widget _buildRecentTransaction(String category, String amount, bool isIncome) {
-    final Color statusColor = isIncome ? const Color(0xFF2E7D32) : const Color(0xFFE53935);
-    
+  Widget _buildRecentTransaction(
+      String category, String amount, bool isIncome) {
+    final Color statusColor =
+        isIncome ? const Color(0xFF2E7D32) : const Color(0xFFE53935);
+
     return ListTile(
       leading: CircleAvatar(
         backgroundColor: statusColor.withOpacity(0.1),
@@ -285,7 +289,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
           color: statusColor,
         ),
       ),
-      title: Text(category, style: const TextStyle(fontWeight: FontWeight.w500)),
+      title:
+          Text(category, style: const TextStyle(fontWeight: FontWeight.w500)),
       subtitle: const Text('Hoje'),
       trailing: Text(
         amount,
@@ -297,8 +302,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
       onTap: () {},
     );
   }
-  
-  Widget _buildBottomNavBar(Color primaryBlue) {
+
+  Widget _buildBottomNavBar(BuildContext context, Color primaryBlue) {
     return BottomAppBar(
       shape: const CircularNotchedRectangle(),
       notchMargin: 8.0,
@@ -306,11 +311,35 @@ class _DashboardScreenState extends State<DashboardScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: <Widget>[
-          IconButton(icon: Icon(Icons.dashboard, color: primaryBlue), onPressed: () {}),
-          IconButton(icon: const Icon(Icons.list_alt, color: Colors.grey), onPressed: () {}),
+          // 1. DASHBOARD
+          IconButton(
+              icon: Icon(Icons.dashboard, color: primaryBlue),
+              onPressed: () {}),
+
+          // 2. RELATÓRIOS
+          IconButton(
+              icon: const Icon(Icons.list_alt, color: Colors.grey),
+              onPressed: () {
+                Navigator.of(context).push(MaterialPageRoute(
+                    builder: (context) => const ReportsScreen()));
+              }),
+
           const SizedBox(width: 40), // Espaço para o FAB
-          IconButton(icon: const Icon(Icons.track_changes, color: Colors.grey), onPressed: () {}),
-          IconButton(icon: const Icon(Icons.person, color: Colors.grey), onPressed: () {}),
+
+          // 3. METAS
+          IconButton(
+              icon: const Icon(Icons.track_changes, color: Colors.grey),
+              onPressed: () {
+                Navigator.of(context).push(MaterialPageRoute(
+                    builder: (context) => const GoalsScreen()));
+              }),
+
+          // 4. PERFIL
+          IconButton(
+              icon: const Icon(Icons.person, color: Colors.grey),
+              onPressed: () {
+                // TODO: Navegar para Perfil
+              }),
         ],
       ),
     );
