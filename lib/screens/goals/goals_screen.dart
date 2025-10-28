@@ -6,8 +6,7 @@ class GoalsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final Color primaryBlue = Theme.of(context).primaryColor;
-    final Color secondaryGreen =
-        const Color(0xFF2E7D32); // Usando o verde secundário
+    const Color secondaryGreen = Color(0xFF2E7D32); // Usando o verde secundário
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -19,9 +18,7 @@ class GoalsScreen extends StatelessWidget {
         centerTitle: true,
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          // TODO: Abrir modal para adicionar nova meta
-        },
+        onPressed: () {},
         child: const Icon(Icons.add, color: Colors.white),
         backgroundColor: primaryBlue,
       ),
