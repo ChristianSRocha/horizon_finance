@@ -38,7 +38,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   _buildBalanceSummaryCard(primaryBlue, secondaryColor),
                   const SizedBox(height: 25),
 
-                  // --- 3. PROJEÇÃO DOS PRÓXIMOS 30 DIAS (Gráfico Placeholder) ---
+                  // --- 3. PROJEÇÃO DOS PRÓXIMOS 30 DIAS (Placeholder) ---
                   _buildProjectionChartCard(primaryBlue),
                   const SizedBox(height: 25),
 
@@ -188,7 +188,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 15),
-            // Placeholder para o Gráfico
             Container(
               height: 150,
               decoration: BoxDecoration(
