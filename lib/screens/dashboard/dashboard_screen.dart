@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:horizon_finance/screens/goals/goals_screen.dart';
 import 'package:horizon_finance/screens/reports/reports_screen.dart';
-// NÃO INCLUÍMOS fl_chart para evitar erros de dependência se não estiver no pubspec.yaml
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -141,12 +140,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 _buildIncomeExpenseItem(
                   label: 'Receitas',
                   amount: receitasMes,
-                  color: const Color(0xFF2E7D32),
+                  color: const Color(0xFF2E7D32), // Verde para Receita
                 ),
                 _buildIncomeExpenseItem(
                   label: 'Despesas',
                   amount: despesasMes,
-                  color: const Color(0xFFE53935),
+                  color: const Color(0xFFE53935), // Vermelho para Despesa
                 ),
               ],
             ),

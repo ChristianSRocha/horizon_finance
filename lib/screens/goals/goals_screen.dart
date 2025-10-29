@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-
 class GoalsScreen extends StatelessWidget {
   const GoalsScreen({super.key});
 
@@ -19,9 +18,7 @@ class GoalsScreen extends StatelessWidget {
         centerTitle: true,
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          // TODO: Abrir modal para adicionar nova meta
-        },
+        onPressed: () {},
         child: const Icon(Icons.add, color: Colors.white),
         backgroundColor: primaryBlue,
       ),

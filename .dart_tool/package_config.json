@@ -197,7 +197,7 @@
       "name": "flutter",
       "rootUri": "file:///C:/Users/Aluno/flutter/packages/flutter",
       "packageUri": "lib/",
-      "languageVersion": "3.7"
+      "languageVersion": "3.8"
     },
     {
       "name": "flutter_lints",
@@ -215,13 +215,13 @@
       "name": "flutter_test",
       "rootUri": "file:///C:/Users/Aluno/flutter/packages/flutter_test",
       "packageUri": "lib/",
-      "languageVersion": "3.7"
+      "languageVersion": "3.8"
     },
     {
       "name": "flutter_web_plugins",
       "rootUri": "file:///C:/Users/Aluno/flutter/packages/flutter_web_plugins",
       "packageUri": "lib/",
-      "languageVersion": "3.7"
+      "languageVersion": "3.8"
     },
     {
       "name": "font_awesome_flutter",
@@ -339,19 +339,19 @@
     },
     {
       "name": "leak_tracker",
-      "rootUri": "file:///C:/Users/Aluno/AppData/Local/Pub/Cache/hosted/pub.dev/leak_tracker-10.0.9",
+      "rootUri": "file:///C:/Users/Aluno/AppData/Local/Pub/Cache/hosted/pub.dev/leak_tracker-11.0.2",
       "packageUri": "lib/",
       "languageVersion": "3.2"
     },
     {
       "name": "leak_tracker_flutter_testing",
-      "rootUri": "file:///C:/Users/Aluno/AppData/Local/Pub/Cache/hosted/pub.dev/leak_tracker_flutter_testing-3.0.9",
+      "rootUri": "file:///C:/Users/Aluno/AppData/Local/Pub/Cache/hosted/pub.dev/leak_tracker_flutter_testing-3.0.10",
       "packageUri": "lib/",
       "languageVersion": "3.2"
     },
     {
       "name": "leak_tracker_testing",
-      "rootUri": "file:///C:/Users/Aluno/AppData/Local/Pub/Cache/hosted/pub.dev/leak_tracker_testing-3.0.1",
+      "rootUri": "file:///C:/Users/Aluno/AppData/Local/Pub/Cache/hosted/pub.dev/leak_tracker_testing-3.0.2",
       "packageUri": "lib/",
       "languageVersion": "3.2"
     },
@@ -605,7 +605,7 @@
       "name": "sky_engine",
       "rootUri": "file:///C:/Users/Aluno/flutter/bin/cache/pkg/sky_engine",
       "packageUri": "lib/",
-      "languageVersion": "3.7"
+      "languageVersion": "3.8"
     },
     {
       "name": "source_gen",
@@ -723,19 +723,19 @@
     },
     {
       "name": "test",
-      "rootUri": "file:///C:/Users/Aluno/AppData/Local/Pub/Cache/hosted/pub.dev/test-1.25.15",
+      "rootUri": "file:///C:/Users/Aluno/AppData/Local/Pub/Cache/hosted/pub.dev/test-1.26.2",
       "packageUri": "lib/",
       "languageVersion": "3.5"
     },
     {
       "name": "test_api",
-      "rootUri": "file:///C:/Users/Aluno/AppData/Local/Pub/Cache/hosted/pub.dev/test_api-0.7.4",
+      "rootUri": "file:///C:/Users/Aluno/AppData/Local/Pub/Cache/hosted/pub.dev/test_api-0.7.6",
       "packageUri": "lib/",
       "languageVersion": "3.5"
     },
     {
       "name": "test_core",
-      "rootUri": "file:///C:/Users/Aluno/AppData/Local/Pub/Cache/hosted/pub.dev/test_core-0.6.8",
+      "rootUri": "file:///C:/Users/Aluno/AppData/Local/Pub/Cache/hosted/pub.dev/test_core-0.6.11",
       "packageUri": "lib/",
       "languageVersion": "3.5"
     },
@@ -801,9 +801,9 @@
     },
     {
       "name": "vector_math",
-      "rootUri": "file:///C:/Users/Aluno/AppData/Local/Pub/Cache/hosted/pub.dev/vector_math-2.1.4",
+      "rootUri": "file:///C:/Users/Aluno/AppData/Local/Pub/Cache/hosted/pub.dev/vector_math-2.2.0",
       "packageUri": "lib/",
-      "languageVersion": "2.14"
+      "languageVersion": "3.1"
     },
     {
       "name": "vm_service",
@@ -885,8 +885,8 @@
     }
   ],
   "generator": "pub",
-  "generatorVersion": "3.8.1",
+  "generatorVersion": "3.9.2",
   "flutterRoot": "file:///C:/Users/Aluno/flutter",
-  "flutterVersion": "3.32.1",
+  "flutterVersion": "3.35.4",
   "pubCache": "file:///C:/Users/Aluno/AppData/Local/Pub/Cache"
 }
