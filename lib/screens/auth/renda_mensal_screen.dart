@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:horizon_finance/screens/auth/despesas_fixas_screen.dart';
+'package:horizon_finance/features/transactions/fixed_transaction_service.dart';
+
 
 class RendaMensalScreen extends StatefulWidget {
   const RendaMensalScreen({super.key});
