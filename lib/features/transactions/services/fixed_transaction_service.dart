@@ -83,10 +83,10 @@ class FixedTransactionService {
             'tipo': tipo,
             'valor': valor,
             'dia': dia,
-            'categoriaId': categoriaId
+            'categoriaId': categoriaId,
             'status': 'ATIVO',
             'dataCriacao': DateTime.now()
-          })
+          });
       
 
       //  ETAPA 3: EXECUÇÃO
