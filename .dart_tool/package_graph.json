@@ -1023,6 +1023,17 @@
       ]
     },
     {
+      "name": "leak_tracker",
+      "version": "11.0.2",
+      "dependencies": [
+        "clock",
+        "collection",
+        "meta",
+        "path",
+        "vm_service"
+      ]
+    },
+    {
       "name": "term_glyph",
       "version": "1.2.2",
       "dependencies": []
@@ -1270,60 +1281,6 @@
       ]
     },
     {
-      "name": "synchronized",
-      "version": "3.4.0",
-      "dependencies": []
-    },
-    {
-      "name": "platform",
-      "version": "3.1.6",
-      "dependencies": []
-    },
-    {
-      "name": "fixnum",
-      "version": "1.1.1",
-      "dependencies": []
-    },
-    {
-      "name": "ffi",
-      "version": "2.1.4",
-      "dependencies": []
-    },
-    {
-      "name": "xdg_directories",
-      "version": "1.1.0",
-      "dependencies": [
-        "meta",
-        "path"
-      ]
-    },
-    {
-      "name": "retry",
-      "version": "3.1.2",
-      "dependencies": []
-    },
-    {
-      "name": "jwt_decode",
-      "version": "0.3.1",
-      "dependencies": []
-    },
-    {
-      "name": "leak_tracker",
-      "version": "11.0.2",
-      "dependencies": [
-        "clock",
-        "collection",
-        "meta",
-        "path",
-        "vm_service"
-      ]
-    },
-    {
-      "name": "vm_service",
-      "version": "15.0.0",
-      "dependencies": []
-    },
-    {
       "name": "test",
       "version": "1.26.2",
       "dependencies": [
@@ -1356,6 +1313,56 @@
       ]
     },
     {
+      "name": "synchronized",
+      "version": "3.4.0",
+      "dependencies": []
+    },
+    {
+      "name": "platform",
+      "version": "3.1.6",
+      "dependencies": []
+    },
+    {
+      "name": "fixnum",
+      "version": "1.1.1",
+      "dependencies": []
+    },
+    {
+      "name": "vm_service",
+      "version": "15.0.0",
+      "dependencies": []
+    },
+    {
+      "name": "ffi",
+      "version": "2.1.4",
+      "dependencies": []
+    },
+    {
+      "name": "xdg_directories",
+      "version": "1.1.0",
+      "dependencies": [
+        "meta",
+        "path"
+      ]
+    },
+    {
+      "name": "retry",
+      "version": "3.1.2",
+      "dependencies": []
+    },
+    {
+      "name": "jwt_decode",
+      "version": "0.3.1",
+      "dependencies": []
+    },
+    {
+      "name": "webkit_inspection_protocol",
+      "version": "1.2.1",
+      "dependencies": [
+        "logging"
+      ]
+    },
+    {
       "name": "test_core",
       "version": "0.6.11",
       "dependencies": [
@@ -1380,13 +1387,6 @@
         "test_api",
         "vm_service",
         "yaml"
-      ]
-    },
-    {
-      "name": "webkit_inspection_protocol",
-      "version": "1.2.1",
-      "dependencies": [
-        "logging"
       ]
     },
     {

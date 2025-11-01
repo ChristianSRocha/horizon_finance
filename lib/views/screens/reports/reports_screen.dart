@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:horizon_finance/widgets/bottom_nav_bar.dart';
+import 'package:horizon_finance/screens/dashboard/dashboard_screen.dart';
+import 'package:horizon_finance/screens/profile/profile_screen.dart';
 
 class ReportsScreen extends StatelessWidget {
   const ReportsScreen({super.key});
@@ -10,6 +13,7 @@ class ReportsScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         title: Text('Relatórios e Análises',
             style: TextStyle(color: primaryBlue, fontWeight: FontWeight.bold)),
         backgroundColor: Colors.white,
@@ -36,6 +40,21 @@ class ReportsScreen extends StatelessWidget {
             _buildCategoryList('Lazer', 300.00, primaryBlue),
           ],
         ),
+      ),
+      bottomNavigationBar: BottomNavBar(
+        activeIndex: 1,
+        onDashboard: () {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (context) => const DashboardScreen()),
+          );
+        },
+        onList: () {},
+        onTrack: () {},
+        onProfile: () {
+          Navigator.of(context).push(
+            MaterialPageRoute(builder: (context) => const ProfileScreen()),
+          );
+        },
       ),
     );
   }

@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:horizon_finance/views/screens/reports/reports_screen.dart';
+import 'package:horizon_finance/screens/profile/profile_screen.dart';
+import 'package:horizon_finance/widgets/bottom_nav_bar.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -26,7 +29,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           children: <Widget>[
             // --- 1. HEADER (BEM-VINDO e ÍCONE) ---
             _buildHeader(primaryBlue),
-            
+
             Padding(
               padding: const EdgeInsets.all(16.0),
               child: Column(
@@ -43,7 +46,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   // --- 4. METAS EM ANDAMENTO ---
                   _buildGoalsSection(primaryBlue),
                   const SizedBox(height: 25),
-                  
+
                   // --- 5. ATIVIDADE RECENTE ---
                   _buildRecentActivitySection(primaryBlue),
                 ],
@@ -52,9 +55,21 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ],
         ),
       ),
-      // Navegação inferior
-      bottomNavigationBar: _buildBottomNavBar(primaryBlue),
-      
+      // Navegação inferior (componente reutilizável)
+      bottomNavigationBar: BottomNavBar(
+        activeIndex: 0,
+        onDashboard: () {},
+        onList: () {
+          Navigator.of(context).push(
+              MaterialPageRoute(builder: (context) => const ReportsScreen()));
+        },
+        onTrack: () {},
+        onProfile: () {
+          Navigator.of(context).push(
+              MaterialPageRoute(builder: (context) => const ProfileScreen()));
+        },
+      ),
+
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           // TODO: Abrir modal de Nova Transação
@@ -73,7 +88,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       padding: const EdgeInsets.fromLTRB(20, 50, 20, 20),
       // MANTÉM O FUNDO BRANCO PARA O LOOK CLEAN
       decoration: const BoxDecoration(
-        color: Colors.white, 
+        color: Colors.white,
         borderRadius: BorderRadius.only(
           bottomLeft: Radius.circular(30),
           bottomRight: Radius.circular(30),
@@ -87,7 +102,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
             children: [
               Text(
                 'Bem-vindo ao Horizons Finance!',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF424242)),
+                style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF424242)),
               ),
               SizedBox(height: 5),
               Text(
@@ -118,7 +136,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Saldo Atual', style: TextStyle(fontSize: 16, color: Colors.grey)),
+            const Text('Saldo Atual',
+                style: TextStyle(fontSize: 16, color: Colors.grey)),
             const SizedBox(height: 5),
             Text(
               'R\$ ${saldoAtual.toStringAsFixed(2).replaceAll('.', ',')}',
@@ -133,16 +152,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 _buildIncomeExpenseItem(
-                  label: 'Receitas', 
-                  amount: receitasMes, 
+                  label: 'Receitas',
+                  amount: receitasMes,
                   // Usando o Verde do tema secundário (2e7d32) para receitas
-                  color: const Color(0xFF2E7D32), 
+                  color: const Color(0xFF2E7D32),
                 ),
                 _buildIncomeExpenseItem(
-                  label: 'Despesas', 
-                  amount: despesasMes, 
+                  label: 'Despesas',
+                  amount: despesasMes,
                   // Usando o Vermelho de Alerta (e53935)
-                  color: const Color(0xFFE53935), 
+                  color: const Color(0xFFE53935),
                 ),
               ],
             ),
@@ -151,8 +170,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ),
     );
   }
-  
-  Widget _buildIncomeExpenseItem({required String label, required double amount, required Color color}) {
+
+  Widget _buildIncomeExpenseItem(
+      {required String label, required double amount, required Color color}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -253,7 +273,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ),
     );
   }
-  
+
   Widget _buildRecentActivitySection(Color primaryBlue) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -274,9 +294,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _buildRecentTransaction(String category, String amount, bool isIncome) {
-    final Color statusColor = isIncome ? const Color(0xFF2E7D32) : const Color(0xFFE53935);
-    
+  Widget _buildRecentTransaction(
+      String category, String amount, bool isIncome) {
+    final Color statusColor =
+        isIncome ? const Color(0xFF2E7D32) : const Color(0xFFE53935);
+
     return ListTile(
       leading: CircleAvatar(
         backgroundColor: statusColor.withOpacity(0.1),
@@ -285,7 +307,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
           color: statusColor,
         ),
       ),
-      title: Text(category, style: const TextStyle(fontWeight: FontWeight.w500)),
+      title:
+          Text(category, style: const TextStyle(fontWeight: FontWeight.w500)),
       subtitle: const Text('Hoje'),
       trailing: Text(
         amount,
@@ -297,22 +320,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
       onTap: () {},
     );
   }
-  
-  Widget _buildBottomNavBar(Color primaryBlue) {
-    return BottomAppBar(
-      shape: const CircularNotchedRectangle(),
-      notchMargin: 8.0,
-      color: Colors.white,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: <Widget>[
-          IconButton(icon: Icon(Icons.dashboard, color: primaryBlue), onPressed: () {}),
-          IconButton(icon: const Icon(Icons.list_alt, color: Colors.grey), onPressed: () {}),
-          const SizedBox(width: 40), // Espaço para o FAB
-          IconButton(icon: const Icon(Icons.track_changes, color: Colors.grey), onPressed: () {}),
-          IconButton(icon: const Icon(Icons.person, color: Colors.grey), onPressed: () {}),
-        ],
-      ),
-    );
-  }
+
+  // Bottom navigation agora é feita pelo widget `BottomNavBar` em cada tela.
 }
