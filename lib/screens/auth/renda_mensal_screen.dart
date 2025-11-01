@@ -154,7 +154,7 @@ class _RendaMensalScreenState extends State<RendaMensalScreen> {
               ElevatedButton(
                 onPressed: () {
                   Navigator.of(context).push(
-                      MaterialPageRoute(builder: (context) => DespesasFixasScreen()),
+                      MaterialPageRoute(builder: (context) => const DespesasFixasScreen()),
                   );
                 },
                 style: ElevatedButton.styleFrom(

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../widgets/bottom_nav_menu.dart';
 
 class ReportsScreen extends StatelessWidget {
   const ReportsScreen({super.key});
@@ -37,6 +38,19 @@ class ReportsScreen extends StatelessWidget {
           ],
         ),
       ),
+      // Adiciona o menu de navegação
+      bottomNavigationBar: BottomNavMenu(
+        currentIndex: 1, // 1 = índice da tela de relatórios
+        primaryColor: primaryBlue,
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          // Implementar ação do FAB
+        },
+        backgroundColor: primaryBlue,
+        child: const Icon(Icons.add, color: Colors.white),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
     );
   }
 
