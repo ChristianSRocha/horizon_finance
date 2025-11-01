@@ -132,13 +132,6 @@
       ]
     },
     {
-      "name": "json_annotation",
-      "version": "4.9.0",
-      "dependencies": [
-        "meta"
-      ]
-    },
-    {
       "name": "supabase_flutter",
       "version": "1.10.25",
       "dependencies": [
