@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' hide Provider, AuthState;
-import "../models/fixed_transactions.dart";
+import "../models/transactions.dart";
 
 // Provider do SupabaseClient (Singleton)
 final supabaseClientProvider = Provider<SupabaseClient>((ref) {
@@ -8,19 +8,19 @@ final supabaseClientProvider = Provider<SupabaseClient>((ref) {
 });
 
 // Provider do Service
-final fixedTransactionServiceProvider = Provider<FixedTransactionService>((ref) {
+final fixedTransactionServiceProvider = Provider<TransactionService>((ref) {
   final supabase = ref.read(supabaseClientProvider);
-  return FixedTransactionService(supabase);
+  return TransactionService(supabase);
 });
 
 
-class FixedTransactionService {
+class TransactionService {
   final SupabaseClient _supabase;
-  static const String _fixedTransactions = 'fixed_transactions';
+  static const String _transactions = 'transactions';
   
-  FixedTransactionService(this._supabase);
+  TransactionService(this._supabase);
 
-  Future<List<FixedTransaction>> getFixedTransactions() async {
+  Future<List<Transaction>> getFixedTransactions() async {
     try {
       //  ETAPA 1: VALIDAÇÃO
       final userId = _supabase.auth.currentUser?.id;
@@ -31,7 +31,7 @@ class FixedTransactionService {
 
       //  ETAPA 2: CONSTRUÇÃO DA QUERY
       final query = _supabase
-          .from(_fixedTransactions)
+          .from(_transactions)
           .select()
           // eq() → Equivale a WHERE campo = valor
           .eq('usuario_id', userId)
@@ -45,7 +45,7 @@ class FixedTransactionService {
 
       //  ETAPA 4: CONVERSÃO JSON → DART
       return (response as List)
-          .map((json) => FixedTransaction.fromJson(json))
+          .map((json) => Transaction.fromJson(json))
           .toList();
       
     } on PostgrestException catch (e) {
@@ -57,12 +57,12 @@ class FixedTransactionService {
     }
   }
 
-  Future<List<FixedTransaction>> addFixedTransactions({
+  Future<List<Transaction>> addTransactions({
     required String descricao,
     required String usuarioId,
     required String tipo,
     required double valor,
-    required int dia, 
+    required DateTime data, 
     required int categoriaId
   }) async {
     
@@ -76,13 +76,13 @@ class FixedTransactionService {
 
       //  ETAPA 2: CONSTRUÇÃO DA QUERY
       final query = _supabase
-          .from(_fixedTransactions)
+          .from(_transactions)
           .insert({
             'descricao': descricao,
             'usuarioId': usuarioId,
             'tipo': tipo,
             'valor': valor,
-            'dia': dia,
+            'data': data,
             'categoriaId': categoriaId,
             'status': 'ATIVO',
             'dataCriacao': DateTime.now()
@@ -95,7 +95,7 @@ class FixedTransactionService {
 
       //  ETAPA 4: CONVERSÃO JSON → DART
       return (response as List)
-          .map((json) => FixedTransaction.fromJson(json))
+          .map((json) => Transaction.fromJson(json))
           .toList();
       
     } on PostgrestException catch (e) {

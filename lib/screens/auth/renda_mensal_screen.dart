@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:horizon_finance/screens/auth/despesas_fixas_screen.dart';
-import'package:horizon_finance/features/transactions/services/fixed_transaction_service.dart';
+import'package:horizon_finance/features/transactions/services/transaction_service.dart';
 
 
 class RendaMensalScreen extends StatefulWidget {
@@ -14,7 +14,7 @@ class _RendaMensalScreenState extends State<RendaMensalScreen> {
   final TextEditingController _controller = TextEditingController();
   final FocusNode _focusNode = FocusNode();
   
-  String _formattedValue = '0,00'; 
+  String _formattedValue = '0,00';  
   
   void _formatAndSetAmount(String text) {
     String cleanText = text.replaceAll(RegExp(r'[^\d]'), ''); 
