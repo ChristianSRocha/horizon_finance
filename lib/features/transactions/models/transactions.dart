@@ -1,10 +1,9 @@
-// lib/features/transactions/models/fixed_transactions.dart
+// lib/features/transactions/models/transactions.dart
 
 import 'package:freezed_annotation/freezed_annotation.dart';
 
-
-part 'fixed_transactions.freezed.dart';
-part 'fixed_transactions.g.dart';
+part 'transactions.freezed.dart';
+part 'transactions.g.dart';
 
 enum TransactionType {
   @JsonValue('RECEITA')
@@ -21,24 +20,26 @@ enum TransactionStatus {
 }
 
 @freezed
-class FixedTransaction with _$FixedTransaction {
-  const factory FixedTransaction({
+class Transaction with _$Transaction {
+  const factory Transaction({
     // Nomes do JSON (supabase) para os nomes do Dart
     required String id,
     @JsonKey(name: 'usuario_id') required String usuarioId,
     required TransactionType tipo,
     required String descricao,
     required double valor,
-    @JsonKey(name: 'dia_do_mes') required int dia,
+    @JsonKey(name: 'dia_do_mes') int? diaDoMes,
+    @JsonKey(name: 'data') DateTime? data,
     @JsonKey(name: 'categoria_id') int? categoriaId, 
+    @JsonKey(name: 'fixed_transaction') required bool fixedTransaction,
     
     required TransactionStatus status,
     
     @JsonKey(name: 'data_criacao') required DateTime dataCriacao,
 
-  }) = _FixedTransaction;
+  }) = _Transaction;
 
   // 7. Adicione o factory 'fromJson' para desserialização
-  factory FixedTransaction.fromJson(Map<String, dynamic> json) =>
-      _$FixedTransactionFromJson(json);
+  factory Transaction.fromJson(Map<String, dynamic> json) =>
+      _$TransactionFromJson(json);
 }

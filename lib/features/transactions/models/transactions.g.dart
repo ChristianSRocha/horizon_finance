@@ -1,35 +1,38 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'fixed_transactions.dart';
+part of 'transactions.dart';
 
 // **************************************************************************
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$FixedTransactionImpl _$$FixedTransactionImplFromJson(
-        Map<String, dynamic> json) =>
-    _$FixedTransactionImpl(
+_$TransactionImpl _$$TransactionImplFromJson(Map<String, dynamic> json) =>
+    _$TransactionImpl(
       id: json['id'] as String,
       usuarioId: json['usuario_id'] as String,
       tipo: $enumDecode(_$TransactionTypeEnumMap, json['tipo']),
       descricao: json['descricao'] as String,
       valor: (json['valor'] as num).toDouble(),
-      dia: (json['dia_do_mes'] as num).toInt(),
+      diaDoMes: (json['dia_do_mes'] as num?)?.toInt(),
+      data:
+          json['data'] == null ? null : DateTime.parse(json['data'] as String),
       categoriaId: (json['categoria_id'] as num?)?.toInt(),
+      fixedTransaction: json['fixed_transaction'] as bool,
       status: $enumDecode(_$TransactionStatusEnumMap, json['status']),
       dataCriacao: DateTime.parse(json['data_criacao'] as String),
     );
 
-Map<String, dynamic> _$$FixedTransactionImplToJson(
-        _$FixedTransactionImpl instance) =>
+Map<String, dynamic> _$$TransactionImplToJson(_$TransactionImpl instance) =>
     <String, dynamic>{
       'id': instance.id,
       'usuario_id': instance.usuarioId,
       'tipo': _$TransactionTypeEnumMap[instance.tipo]!,
       'descricao': instance.descricao,
       'valor': instance.valor,
-      'dia_do_mes': instance.dia,
+      'dia_do_mes': instance.diaDoMes,
+      'data': instance.data?.toIso8601String(),
       'categoria_id': instance.categoriaId,
+      'fixed_transaction': instance.fixedTransaction,
       'status': _$TransactionStatusEnumMap[instance.status]!,
       'data_criacao': instance.dataCriacao.toIso8601String(),
     };
