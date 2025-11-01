@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:horizon_finance/screens/goals/goals_screen.dart';
 import 'package:horizon_finance/screens/reports/reports_screen.dart';
+import 'package:horizon_finance/widgets/bottom_nav_menu.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -61,8 +62,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
         onPressed: () {
           // TODO: Abrir modal de Nova Transação
         },
-        child: const Icon(Icons.add, color: Colors.white),
         backgroundColor: primaryBlue,
+        child: const Icon(Icons.add, color: Colors.white),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
     );
@@ -303,44 +304,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Widget _buildBottomNavBar(BuildContext context, Color primaryBlue) {
-    return BottomAppBar(
-      shape: const CircularNotchedRectangle(),
-      notchMargin: 8.0,
-      color: Colors.white,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: <Widget>[
-          // 1. DASHBOARD
-          IconButton(
-              icon: Icon(Icons.dashboard, color: primaryBlue),
-              onPressed: () {}),
-
-          // 2. RELATÓRIOS
-          IconButton(
-              icon: const Icon(Icons.list_alt, color: Colors.grey),
-              onPressed: () {
-                Navigator.of(context).push(MaterialPageRoute(
-                    builder: (context) => const ReportsScreen()));
-              }),
-
-          const SizedBox(width: 40), // Espaço para o FAB
-
-          // 3. METAS
-          IconButton(
-              icon: const Icon(Icons.track_changes, color: Colors.grey),
-              onPressed: () {
-                Navigator.of(context).push(MaterialPageRoute(
-                    builder: (context) => const GoalsScreen()));
-              }),
-
-          // 4. PERFIL
-          IconButton(
-              icon: const Icon(Icons.person, color: Colors.grey),
-              onPressed: () {
-                // TODO: Navegar para Perfil
-              }),
-        ],
-      ),
+    return BottomNavMenu(
+      currentIndex: 0,
+      primaryColor: primaryBlue,
     );
   }
 }

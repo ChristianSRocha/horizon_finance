@@ -207,7 +207,7 @@ class _RendaMensalScreenState extends ConsumerState<RendaMensalScreen> {
                     ),
                     const SizedBox(height: 12),
                     DropdownButtonFormField<String>(
-                      value: _categoriaSelecionada,
+                      initialValue: _categoriaSelecionada,
                       decoration: InputDecoration(
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
@@ -259,7 +259,7 @@ class _RendaMensalScreenState extends ConsumerState<RendaMensalScreen> {
                     ),
                     const SizedBox(height: 12),
                     DropdownButtonFormField<int>(
-                      value: _diaSelecionado,
+                      initialValue: _diaSelecionado,
                       decoration: InputDecoration(
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
@@ -340,9 +340,9 @@ class _RendaMensalScreenState extends ConsumerState<RendaMensalScreen> {
                       disabledBackgroundColor: Colors.grey[300],
                       disabledForegroundColor: Colors.grey[500],
                     ),
-                    child: Row(
+                    child: const Row(
                       mainAxisAlignment: MainAxisAlignment.center,
-                      children: const [
+                      children: [
                         Text(
                           'Continuar',
                           style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
