@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:horizon_finance/screens/auth/login_cadastro_screen.dart';
 import 'package:horizon_finance/screens/auth/renda_mensal_screen.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'verify_email_screen.dart';
@@ -54,7 +55,7 @@ class _CadastroScreenState extends ConsumerState<CadastroScreen> {
           );
 
           Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (context) => const VerifyEmailScreen()),
+            MaterialPageRoute(builder: (context) => const LoginCadastroScreen()),
           );
         }
       } catch (e) {
