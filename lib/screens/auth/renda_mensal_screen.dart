@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:horizon_finance/screens/auth/despesas_fixas_screen.dart';
-import'package:horizon_finance/features/transactions/services/transaction_service.dart';
-
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'verify_email_screen.dart';
 
 class RendaMensalScreen extends StatefulWidget {
   const RendaMensalScreen({super.key});
@@ -13,11 +13,12 @@ class RendaMensalScreen extends StatefulWidget {
 class _RendaMensalScreenState extends State<RendaMensalScreen> {
   final TextEditingController _controller = TextEditingController();
   final FocusNode _focusNode = FocusNode();
-  
-  String _formattedValue = '0,00';  
-  
+
+  String _formattedValue = '0,00';
+  bool _checking = true; // indica verificação do email
+
   void _formatAndSetAmount(String text) {
-    String cleanText = text.replaceAll(RegExp(r'[^\d]'), ''); 
+    String cleanText = text.replaceAll(RegExp(r'[^\d]'), '');
 
     if (cleanText.isEmpty) {
       setState(() {
@@ -32,7 +33,7 @@ class _RendaMensalScreenState extends State<RendaMensalScreen> {
 
     String integerPart = cleanText.substring(0, cleanText.length - 2);
     String fractionalPart = cleanText.substring(cleanText.length - 2);
-    
+
     if (integerPart.length > 3) {
       integerPart = integerPart.replaceAllMapped(
         RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
@@ -44,15 +45,41 @@ class _RendaMensalScreenState extends State<RendaMensalScreen> {
       _formattedValue = '$integerPart,$fractionalPart';
     });
   }
-  
+
   @override
   void initState() {
     super.initState();
+    _ensureEmailConfirmed();
     _controller.addListener(() {
       _formatAndSetAmount(_controller.text);
     });
   }
-  
+
+  Future<void> _ensureEmailConfirmed() async {
+    setState(() => _checking = true);
+    try {
+      final supabase = Supabase.instance.client;
+      final user = supabase.auth.currentUser;
+      final confirmed = user?.emailConfirmedAt != null;
+      if (!confirmed) {
+        if (!mounted) return;
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (_) => const VerifyEmailScreen()),
+        );
+        return;
+      }
+    } catch (_) {
+      if (mounted) {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (_) => const VerifyEmailScreen()),
+        );
+        return;
+      }
+    } finally {
+      if (mounted) setState(() => _checking = false);
+    }
+  }
+
   @override
   void dispose() {
     _controller.dispose();
@@ -60,10 +87,20 @@ class _RendaMensalScreenState extends State<RendaMensalScreen> {
     super.dispose();
   }
 
-
   @override
   Widget build(BuildContext context) {
     final Color primaryBlue = Theme.of(context).primaryColor;
+
+    if (_checking) {
+      return Scaffold(
+        backgroundColor: Colors.white,
+        appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+        ),
+        body: const Center(child: CircularProgressIndicator()),
+      );
+    }
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -98,7 +135,6 @@ class _RendaMensalScreenState extends State<RendaMensalScreen> {
                 ),
               ),
               const SizedBox(height: 60),
-              
               GestureDetector(
                 onTap: () {
                   _focusNode.requestFocus();
@@ -125,7 +161,7 @@ class _RendaMensalScreenState extends State<RendaMensalScreen> {
                           ),
                         ),
                         Text(
-                          _formattedValue, 
+                          _formattedValue,
                           style: TextStyle(
                             fontSize: 48,
                             fontWeight: FontWeight.bold,
@@ -138,7 +174,6 @@ class _RendaMensalScreenState extends State<RendaMensalScreen> {
                 ),
               ),
               const SizedBox(height: 40),
-
               Opacity(
                 opacity: 0.0,
                 child: SizedBox(
@@ -150,15 +185,14 @@ class _RendaMensalScreenState extends State<RendaMensalScreen> {
                   ),
                 ),
               ),
-              
               ElevatedButton(
                 onPressed: () {
                   Navigator.of(context).push(
-                      MaterialPageRoute(builder: (context) => const DespesasFixasScreen()),
+                    MaterialPageRoute(builder: (context) => const DespesasFixasScreen()),
                   );
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: primaryBlue, 
+                  backgroundColor: primaryBlue,
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 18),
                   shape: RoundedRectangleBorder(

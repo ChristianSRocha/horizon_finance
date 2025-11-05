@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:horizon_finance/screens/auth/renda_mensal_screen.dart';
-// Importe o AuthService que você criou
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'verify_email_screen.dart';
 import 'package:horizon_finance/features/auth/services/auth_service.dart';
 
 // MUDANÇA 1: StatefulWidget → ConsumerStatefulWidget
@@ -42,28 +43,24 @@ class _CadastroScreenState extends ConsumerState<CadastroScreen> {
           name: _usernameController.text.trim(),
         );
 
-        // Sucesso no cadastro: Leva para o Onboarding
+        // Sucesso no cadastro: direciona para a tela de verificação de e‑mail
         if (mounted) {
-          // Mostrar mensagem de sucesso
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text('Conta criada com sucesso!'),
+              content: Text('Conta criada com sucesso! Verifique seu e‑mail.'),
               backgroundColor: Colors.green,
               duration: Duration(seconds: 2),
             ),
           );
 
-          // Navegar para próxima tela
           Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (context) => const RendaMensalScreen()),
+            MaterialPageRoute(builder: (context) => const VerifyEmailScreen()),
           );
         }
       } catch (e) {
         // Erro no cadastro
         if (mounted) {
-          // Pega a mensagem de erro do AuthState
           final errorMessage = ref.read(authServiceProvider).errorMessage;
-          
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(errorMessage ?? 'Erro ao criar conta. Tente novamente.'),
