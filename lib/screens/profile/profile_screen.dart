@@ -29,7 +29,10 @@ class ProfileScreen extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             Text('Nome do Usuário',
-                style: TextStyle(fontSize: 18, color: primaryBlue, fontWeight: FontWeight.bold)),
+                style: TextStyle(
+                    fontSize: 18,
+                    color: primaryBlue,
+                    fontWeight: FontWeight.bold)),
             const SizedBox(height: 4),
             Text('usuario@email.com', style: const TextStyle(color: Colors.grey)),
             const SizedBox(height: 20),
@@ -59,7 +62,7 @@ class ProfileScreen extends StatelessWidget {
                 leading: const Icon(Icons.logout, color: Colors.red),
                 title: const Text('Sair'),
                 onTap: () {
-                  // TODO: Implementar logout real
+                  // Ajuste a rota de login conforme seu app
                   Navigator.of(context).pushReplacementNamed('/login');
                 },
               ),

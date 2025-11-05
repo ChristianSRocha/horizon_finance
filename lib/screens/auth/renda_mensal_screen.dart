@@ -4,6 +4,8 @@ import'package:horizon_finance/features/transactions/services/transaction_servic
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'dart:developer' as developer;
 import 'package:supabase_flutter/supabase_flutter.dart' hide Provider, AuthState;
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'verify_email_screen.dart';
 
 class RendaMensalScreen extends ConsumerStatefulWidget {
   const RendaMensalScreen({super.key});
@@ -39,7 +41,7 @@ class _RendaMensalScreenState extends ConsumerState<RendaMensalScreen> {
 
     String integerPart = cleanText.substring(0, cleanText.length - 2);
     String fractionalPart = cleanText.substring(cleanText.length - 2);
-    
+
     if (integerPart.length > 3) {
       integerPart = integerPart.replaceAllMapped(
         RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
@@ -118,15 +120,41 @@ class _RendaMensalScreenState extends ConsumerState<RendaMensalScreen> {
       }
     }
   }
-  
+
   @override
   void initState() {
     super.initState();
+    _ensureEmailConfirmed();
     _controller.addListener(() {
       _formatAndSetAmount(_controller.text);
     });
   }
-  
+
+  Future<void> _ensureEmailConfirmed() async {
+    setState(() => _checking = true);
+    try {
+      final supabase = Supabase.instance.client;
+      final user = supabase.auth.currentUser;
+      final confirmed = user?.emailConfirmedAt != null;
+      if (!confirmed) {
+        if (!mounted) return;
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (_) => const VerifyEmailScreen()),
+        );
+        return;
+      }
+    } catch (_) {
+      if (mounted) {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (_) => const VerifyEmailScreen()),
+        );
+        return;
+      }
+    } finally {
+      if (mounted) setState(() => _checking = false);
+    }
+  }
+
   @override
   void dispose() {
     _controller.dispose();
@@ -134,10 +162,20 @@ class _RendaMensalScreenState extends ConsumerState<RendaMensalScreen> {
     super.dispose();
   }
 
-
   @override
   Widget build(BuildContext context) {
     final Color primaryBlue = Theme.of(context).primaryColor;
+
+    if (_checking) {
+      return Scaffold(
+        backgroundColor: Colors.white,
+        appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+        ),
+        body: const Center(child: CircularProgressIndicator()),
+      );
+    }
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -172,7 +210,6 @@ class _RendaMensalScreenState extends ConsumerState<RendaMensalScreen> {
                 ),
               ),
               const SizedBox(height: 60),
-              
               GestureDetector(
                 onTap: () {
                   _focusNode.requestFocus();
@@ -199,7 +236,7 @@ class _RendaMensalScreenState extends ConsumerState<RendaMensalScreen> {
                           ),
                         ),
                         Text(
-                          _formattedValue, 
+                          _formattedValue,
                           style: TextStyle(
                             fontSize: 48,
                             fontWeight: FontWeight.bold,
@@ -212,7 +249,6 @@ class _RendaMensalScreenState extends ConsumerState<RendaMensalScreen> {
                 ),
               ),
               const SizedBox(height: 40),
-
               Opacity(
                 opacity: 0.0,
                 child: SizedBox(
@@ -224,11 +260,10 @@ class _RendaMensalScreenState extends ConsumerState<RendaMensalScreen> {
                   ),
                 ),
               ),
-              
               ElevatedButton(
                 onPressed: _isLoading ? null : _saveAndContinue,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: primaryBlue, 
+                  backgroundColor: primaryBlue,
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 18),
                   shape: RoundedRectangleBorder(

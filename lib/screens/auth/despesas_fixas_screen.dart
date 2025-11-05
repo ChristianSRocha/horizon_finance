@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:horizon_finance/screens/dashboard/dashboard_screen.dart'; 
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'verify_email_screen.dart';
 
 class DespesasFixasScreen extends StatefulWidget {
   const DespesasFixasScreen({super.key});
@@ -17,6 +19,28 @@ class _DespesasFixasScreenState extends State<DespesasFixasScreen> {
     {'name': 'Outras Despesas Fixas', 'icon': Icons.more_horiz, 'value': 0.0},
   ];
 
+  @override
+  void initState() {
+    super.initState();
+    _ensureEmailConfirmed();
+  }
+
+  Future<void> _ensureEmailConfirmed() async {
+    try {
+      final supabase = Supabase.instance.client;
+      final user = supabase.auth.currentUser;
+      final confirmed = user?.emailConfirmedAt != null;
+      if (!confirmed) {
+        if (!mounted) return;
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (_) => const VerifyEmailScreen()),
+        );
+      }
+    } catch (e) {
+      // Tratar erro se necessário
+    }
+  }
+  
   @override
   Widget build(BuildContext context) {
     final Color primaryBlue = Theme.of(context).primaryColor;

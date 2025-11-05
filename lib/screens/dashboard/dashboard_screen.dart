@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:horizon_finance/screens/goals/goals_screen.dart';
-import 'package:horizon_finance/screens/reports/reports_screen.dart';
 import 'package:horizon_finance/widgets/bottom_nav_menu.dart';
 
 class DashboardScreen extends StatefulWidget {
