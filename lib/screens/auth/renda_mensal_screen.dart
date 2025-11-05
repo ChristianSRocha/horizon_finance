@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:horizon_finance/screens/auth/despesas_fixas_screen.dart';
 import'package:horizon_finance/features/transactions/services/transaction_service.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'dart:developer' as dev;
+import 'dart:developer' as developer;
 import 'package:supabase_flutter/supabase_flutter.dart' hide Provider, AuthState;
 
 class RendaMensalScreen extends ConsumerStatefulWidget {
@@ -12,7 +12,7 @@ class RendaMensalScreen extends ConsumerStatefulWidget {
   ConsumerState<RendaMensalScreen> createState() => _RendaMensalScreenState();
 }
 
-class _RendaMensalScreenState extends State<RendaMensalScreen> {
+class _RendaMensalScreenState extends ConsumerState<RendaMensalScreen> {
   final TextEditingController _controller = TextEditingController();
   final FocusNode _focusNode = FocusNode();
   
@@ -80,7 +80,7 @@ class _RendaMensalScreenState extends State<RendaMensalScreen> {
     try {
 
       final transactionService = ref.read(TransactionServiceProvider);
-      final transaction = await transactionService.addTransactions(descricao: 'Renda Mensal', tipo: 'RECEITA', valor: valor, data: DateTime.now(), categoriaId: 1);
+      final transaction = await transactionService.addTransactions(descricao: 'Renda Mensal', tipo: 'RECEITA', valor: valor, categoriaId: 1, fixedTransaction: true, diaDoMes: 5, data: null);
 
       developer.log(
         'Transação salva com sucesso: ${transaction}',

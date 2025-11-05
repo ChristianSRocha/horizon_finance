@@ -59,12 +59,14 @@ class TransactionService {
     }
   }
 
-  Future<List<Transaction>> addTransactions({
+  Future<Transaction> addTransactions({
     required String descricao,
     required String tipo,
     required double valor,
-    required DateTime data, 
-    required int categoriaId
+    DateTime? data, 
+    int? diaDoMes,
+    required int categoriaId,
+    required bool fixedTransaction,
   }) async {
 
 
@@ -87,45 +89,32 @@ class TransactionService {
         'usuario_id': userId,
         'tipo': tipo,
         'valor': valor,
-        'data': now.toIso8601String(),
+        'data': data?.toIso8601String(),
         'categoria_id': categoriaId,
         'status': 'ATIVO',
         'data_criacao': now.toIso8601String(),
+        'fixed_transaction': fixedTransaction,
+        'dia_do_mes': diaDoMes ?? null,
       };
       
+
       developer.log(
-        '📝 Dados preparados para inserção:',
-        name: 'TransactionService',
-      );
-      developer.log(
-        '   - Descrição: ${dataToInsert['descricao']}',
-        name: 'TransactionService',
-      );
-      developer.log(
-        '   - Tipo: ${dataToInsert['tipo']}',
-        name: 'TransactionService',
-      );
-      developer.log(
-        '   - Valor: ${dataToInsert['valor']}',
-        name: 'TransactionService',
-      );
-      developer.log(
-        '   - Usuario ID: ${dataToInsert['usuario_id']}',
-        name: 'TransactionService',
-      );
-      //  ETAPA 2: CONSTRUÇÃO DA QUERY
+      '''- Descrição: ${dataToInsert['descricao']},
+      - Tipo: ${dataToInsert['tipo']},
+      - Valor: ${dataToInsert['valor']},
+      - Usuario ID: ${dataToInsert['usuario_id']},
+      - Categoria ID: ${dataToInsert['categoria_id']},
+      - Status: ${dataToInsert['status']},
+      - Data Criação: ${dataToInsert['data_criacao']}''', // <--- Aspas triplas aqui
+      name: 'TransactionService',
+    );
+
+      //  ETAPA 2.2: CONSTRUÇÃO DA QUERY
       final query = _supabase
           .from(_transactions)
-          .insert({
-            'descricao': descricao,
-            'usuarioId': usuarioId,
-            'tipo': tipo,
-            'valor': valor,
-            'data': data,
-            'categoriaId': categoriaId,
-            'status': 'ATIVO',
-            'dataCriacao': DateTime.now()
-          });
+          .insert(dataToInsert)
+          .select()
+          .single();
       
 
       //  ETAPA 3: EXECUÇÃO
@@ -133,9 +122,7 @@ class TransactionService {
     
 
       //  ETAPA 4: CONVERSÃO JSON → DART
-      return (response as List)
-          .map((json) => Transaction.fromJson(json))
-          .toList();
+      return Transaction.fromJson(response);
       
     } on PostgrestException catch (e) {
       // Erro específico do Supabase

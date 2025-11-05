@@ -3,6 +3,7 @@ import 'package:horizon_finance/screens/auth/cadastro_screen.dart';
 import 'package:horizon_finance/screens/dashboard/dashboard_screen.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:horizon_finance/features/auth/services/auth_service.dart';
+import 'package:horizon_finance/screens/auth/renda_mensal_screen.dart';
 
 class LoginCadastroScreen extends ConsumerStatefulWidget {
   const LoginCadastroScreen({super.key});
@@ -44,7 +45,7 @@ class _LoginCadastroScreenState extends ConsumerState<LoginCadastroScreen> {
 
           // Redirecionar para o Dashboard
           Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (context) => const DashboardScreen()),
+            MaterialPageRoute(builder: (context) => const RendaMensalScreen()),
           );
         }
       } catch (e) {

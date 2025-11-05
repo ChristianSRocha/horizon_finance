@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:horizon_finance/screens/auth/login_cadastro_screen.dart';
 import 'package:horizon_finance/screens/auth/renda_mensal_screen.dart';
 // Importe o AuthService que você criou
 import 'package:horizon_finance/features/auth/services/auth_service.dart';
@@ -55,7 +56,7 @@ class _CadastroScreenState extends ConsumerState<CadastroScreen> {
 
           // Navegar para próxima tela
           Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (context) => const RendaMensalScreen()),
+            MaterialPageRoute(builder: (context) => const LoginCadastroScreen()),
           );
         }
       } catch (e) {
