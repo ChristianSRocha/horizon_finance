@@ -215,7 +215,7 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
           borderSide: BorderSide(color: typeColor, width: 2),
         ),
       ),
-      value: _selectedCategory,
+      initialValue: _selectedCategory,
       hint: const Text('Selecione uma categoria'),
       items: currentCategories.map((String category) {
         return DropdownMenuItem<String>(

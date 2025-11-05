@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:horizon_finance/widgets/bottom_nav_menu.dart';
 
 class GoalsScreen extends StatelessWidget {
   const GoalsScreen({super.key});
@@ -17,11 +18,21 @@ class GoalsScreen extends StatelessWidget {
         elevation: 0,
         centerTitle: true,
       ),
+
+      // Mantém o FAB e posiciona-o centralizado (mesma aparência do dashboard)
       floatingActionButton: FloatingActionButton(
         onPressed: () {},
-        child: const Icon(Icons.add, color: Colors.white),
         backgroundColor: primaryBlue,
+        child: const Icon(Icons.add, color: Colors.white),
       ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+
+      // Adiciona o menu de navegação compartilhado
+      bottomNavigationBar: BottomNavMenu(
+        currentIndex: 2, // 2 = índice da tela de metas (ajuste se necessário)
+        primaryColor: primaryBlue,
+      ),
+
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
