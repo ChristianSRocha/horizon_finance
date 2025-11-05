@@ -1,6 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' hide Provider, AuthState;
 import "../models/transactions.dart";
+import 'dart:developer' as developer;
+
 
 // Provider do SupabaseClient (Singleton)
 final supabaseClientProvider = Provider<SupabaseClient>((ref) {
@@ -8,7 +10,7 @@ final supabaseClientProvider = Provider<SupabaseClient>((ref) {
 });
 
 // Provider do Service
-final fixedTransactionServiceProvider = Provider<TransactionService>((ref) {
+final TransactionServiceProvider = Provider<TransactionService>((ref) {
   final supabase = ref.read(supabaseClientProvider);
   return TransactionService(supabase);
 });
@@ -59,12 +61,17 @@ class TransactionService {
 
   Future<List<Transaction>> addTransactions({
     required String descricao,
-    required String usuarioId,
     required String tipo,
     required double valor,
     required DateTime data, 
     required int categoriaId
   }) async {
+
+
+    developer.log(
+      'Valor a salvar(BACKEND): R\$ ${valor.toStringAsFixed(2)}',
+      name: 'TransactionService',
+    );
     
     try {
       //  ETAPA 1: VALIDAÇÃO
@@ -73,7 +80,39 @@ class TransactionService {
         throw Exception('Usuário não autenticado');
       }
       
-
+       //  ETAPA 2: CONSTRUÇÃO DOS DADOS
+      final now = DateTime.now();
+      final dataToInsert = {
+        'descricao': descricao,
+        'usuario_id': userId,
+        'tipo': tipo,
+        'valor': valor,
+        'data': now.toIso8601String(),
+        'categoria_id': categoriaId,
+        'status': 'ATIVO',
+        'data_criacao': now.toIso8601String(),
+      };
+      
+      developer.log(
+        '📝 Dados preparados para inserção:',
+        name: 'TransactionService',
+      );
+      developer.log(
+        '   - Descrição: ${dataToInsert['descricao']}',
+        name: 'TransactionService',
+      );
+      developer.log(
+        '   - Tipo: ${dataToInsert['tipo']}',
+        name: 'TransactionService',
+      );
+      developer.log(
+        '   - Valor: ${dataToInsert['valor']}',
+        name: 'TransactionService',
+      );
+      developer.log(
+        '   - Usuario ID: ${dataToInsert['usuario_id']}',
+        name: 'TransactionService',
+      );
       //  ETAPA 2: CONSTRUÇÃO DA QUERY
       final query = _supabase
           .from(_transactions)

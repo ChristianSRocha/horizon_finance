@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:horizon_finance/screens/auth/despesas_fixas_screen.dart';
 import'package:horizon_finance/features/transactions/services/transaction_service.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'dart:developer' as dev;
+import 'package:supabase_flutter/supabase_flutter.dart' hide Provider, AuthState;
 
-
-class RendaMensalScreen extends StatefulWidget {
+class RendaMensalScreen extends ConsumerStatefulWidget {
   const RendaMensalScreen({super.key});
 
   @override
-  State<RendaMensalScreen> createState() => _RendaMensalScreenState();
+  ConsumerState<RendaMensalScreen> createState() => _RendaMensalScreenState();
 }
 
 class _RendaMensalScreenState extends State<RendaMensalScreen> {
@@ -15,8 +17,13 @@ class _RendaMensalScreenState extends State<RendaMensalScreen> {
   final FocusNode _focusNode = FocusNode();
   
   String _formattedValue = '0,00';  
+  bool _isLoading = false;
   
   void _formatAndSetAmount(String text) {
+    developer.log(
+      'valor digitado: "$text"',
+      name: 'RendaMensalScreen',
+    );
     String cleanText = text.replaceAll(RegExp(r'[^\d]'), ''); 
 
     if (cleanText.isEmpty) {
@@ -43,6 +50,73 @@ class _RendaMensalScreenState extends State<RendaMensalScreen> {
     setState(() {
       _formattedValue = '$integerPart,$fractionalPart';
     });
+
+    developer.log(
+      'Valor formatado: $_formattedValue',
+      name: 'RendaMensalScreen',
+    );
+  }
+
+  // Converte o valor formatado para double
+  double _getNumericValue() {
+    String cleanValue = _formattedValue.replaceAll('.', '').replaceAll(',', '.');
+    return double.tryParse(cleanValue) ?? 0.0;
+  }
+
+  // Salva a renda mensal no backend
+  Future<void> _saveAndContinue() async {
+    final valor = _getNumericValue();
+
+    developer.log(
+      'Valor a ser salvo: R\$ ${valor.toStringAsFixed(2)}',
+      name: 'RendaMensalScreen',
+    );
+  
+    
+    setState(() {
+      _isLoading = true;
+    });
+    
+    try {
+
+      final transactionService = ref.read(TransactionServiceProvider);
+      final transaction = await transactionService.addTransactions(descricao: 'Renda Mensal', tipo: 'RECEITA', valor: valor, data: DateTime.now(), categoriaId: 1);
+
+      developer.log(
+        'Transação salva com sucesso: ${transaction}',
+        name: 'RendaMensalScreen',
+      );
+
+      if (mounted) {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (context) => const DespesasFixasScreen(),
+          ),
+        );
+      }
+    } catch (e) {
+      developer.log(
+        'ERRO AO SALVAR',
+        name: 'RendaMensalScreen',
+        error: e.toString(),
+      );
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erro ao salvar: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
   }
   
   @override
@@ -152,11 +226,7 @@ class _RendaMensalScreenState extends State<RendaMensalScreen> {
               ),
               
               ElevatedButton(
-                onPressed: () {
-                  Navigator.of(context).push(
-                      MaterialPageRoute(builder: (context) => DespesasFixasScreen()),
-                  );
-                },
+                onPressed: _isLoading ? null : _saveAndContinue,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: primaryBlue, 
                   foregroundColor: Colors.white,
@@ -165,11 +235,21 @@ class _RendaMensalScreenState extends State<RendaMensalScreen> {
                     borderRadius: BorderRadius.circular(10),
                   ),
                   elevation: 5,
+                  disabledBackgroundColor: primaryBlue.withOpacity(0.5),
                 ),
-                child: const Text(
-                  'Continuar',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
+                child: _isLoading
+                    ? const SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(
+                          color: Colors.white,
+                          strokeWidth: 2,
+                        ),
+                      )
+                    : const Text(
+                        'Continuar',
+                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      ),
               ),
               const SizedBox(height: 20),
             ],

@@ -376,3 +376,4 @@ O sistema de autenticação do Horizon Finance está bem estruturado com:
 - ⚠️ Persistência de dados pendente
 
 A arquitetura permite fácil expansão e manutenção, seguindo as melhores práticas do Flutter e Supabase.
+

@@ -5,19 +5,6 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 part 'transactions.freezed.dart';
 part 'transactions.g.dart';
 
-enum TransactionType {
-  @JsonValue('RECEITA')
-  receita,
-  @JsonValue('DESPESA')
-  despesa,
-}
-
-enum TransactionStatus {
-  @JsonValue('ATIVO')
-  ativo,
-  @JsonValue('INATIVO')
-  inativo,
-}
 
 @freezed
 class Transaction with _$Transaction {
@@ -28,6 +15,8 @@ class Transaction with _$Transaction {
     required TransactionType tipo,
     required String descricao,
     required double valor,
+    required string TransactionType,
+    required string TransactionStatus,
     @JsonKey(name: 'dia_do_mes') int? diaDoMes,
     @JsonKey(name: 'data') DateTime? data,
     @JsonKey(name: 'categoria_id') int? categoriaId, 
