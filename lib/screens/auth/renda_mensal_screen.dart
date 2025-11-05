@@ -20,6 +20,7 @@ class _RendaMensalScreenState extends ConsumerState<RendaMensalScreen> {
   
   String _formattedValue = '0,00';  
   bool _isLoading = false;
+  bool _checking = true;
   
   void _formatAndSetAmount(String text) {
     developer.log(
