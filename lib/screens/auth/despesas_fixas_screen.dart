@@ -1,46 +1,199 @@
+import 'dart:developer' as developer;
 import 'package:flutter/material.dart';
-import 'package:horizon_finance/screens/dashboard/dashboard_screen.dart'; 
-import 'package:supabase_flutter/supabase_flutter.dart';
-import 'verify_email_screen.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:horizon_finance/screens/dashboard/dashboard_screen.dart';
+import 'package:horizon_finance/features/transactions/services/transaction_service.dart';
 
-class DespesasFixasScreen extends StatefulWidget {
+class DespesasFixasScreen extends ConsumerStatefulWidget {
   const DespesasFixasScreen({super.key});
 
   @override
-  State<DespesasFixasScreen> createState() => _DespesasFixasScreenState();
+  ConsumerState<DespesasFixasScreen> createState() => _DespesasFixasScreenState();
 }
 
-class _DespesasFixasScreenState extends State<DespesasFixasScreen> {
+class _DespesasFixasScreenState extends ConsumerState<DespesasFixasScreen> {
   final List<Map<String, dynamic>> _despesas = [
-    {'name': 'Aluguel/Hipoteca', 'icon': Icons.home_outlined, 'value': 0.0},
-    {'name': 'Assinaturas', 'icon': Icons.subscriptions_outlined, 'value': 0.0},
-    {'name': 'Plano de Saúde', 'icon': Icons.local_hospital_outlined, 'value': 0.0},
-    {'name': 'Mensalidades', 'icon': Icons.school_outlined, 'value': 0.0},
-    {'name': 'Outras Despesas Fixas', 'icon': Icons.more_horiz, 'value': 0.0},
+    {
+      'name': 'Aluguel/Hipoteca',
+      'icon': Icons.home_outlined,
+      'value': 0.0,
+      'controller': TextEditingController(),
+    },
+    {
+      'name': 'Assinaturas',
+      'icon': Icons.subscriptions_outlined,
+      'value': 0.0,
+      'controller': TextEditingController(),
+    },
+    {
+      'name': 'Plano de Saúde',
+      'icon': Icons.local_hospital_outlined,
+      'value': 0.0,
+      'controller': TextEditingController(),
+    },
+    {
+      'name': 'Mensalidades',
+      'icon': Icons.school_outlined,
+      'value': 0.0,
+      'controller': TextEditingController(),
+    },
+    {
+      'name': 'Outras Despesas Fixas',
+      'icon': Icons.more_horiz,
+      'value': 0.0,
+      'controller': TextEditingController(),
+    },
   ];
 
+  bool _isLoading = false;
+
   @override
-  void initState() {
-    super.initState();
-    _ensureEmailConfirmed();
+  void dispose() {
+    // Libera os controllers
+    for (var despesa in _despesas) {
+      (despesa['controller'] as TextEditingController).dispose();
+    }
+    super.dispose();
   }
 
-  Future<void> _ensureEmailConfirmed() async {
+  // Converte string formatada para double
+  double _parseValue(String text) {
+    if (text.isEmpty) return 0.0;
+    
+    // Remove R$, espaços e converte , para .
+    String cleanValue = text
+        .replaceAll('R\$', '')
+        .replaceAll(' ', '')
+        .replaceAll('.', '') // Remove separador de milhar
+        .replaceAll(',', '.'); // Converte decimal
+    
+    return double.tryParse(cleanValue) ?? 0.0;
+  }
+
+  // Formata valor para exibição
+  String _formatValue(String text) {
+    if (text.isEmpty) return '';
+    
+    String cleanText = text.replaceAll(RegExp(r'[^\d]'), '');
+    
+    if (cleanText.isEmpty) return '';
+    
+    while (cleanText.length < 3) {
+      cleanText = '0$cleanText';
+    }
+
+    String integerPart = cleanText.substring(0, cleanText.length - 2);
+    String fractionalPart = cleanText.substring(cleanText.length - 2);
+    
+    if (integerPart.length > 3) {
+      integerPart = integerPart.replaceAllMapped(
+        RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+        (Match m) => '${m[1]}.',
+      );
+    }
+
+    return '$integerPart,$fractionalPart';
+  }
+
+  // Salva todas as despesas no backend
+  Future<void> _saveAndContinue() async {
+
+    setState(() {
+      _isLoading = true;
+    });
+
     try {
-      final supabase = Supabase.instance.client;
-      final user = supabase.auth.currentUser;
-      final confirmed = user?.emailConfirmedAt != null;
-      if (!confirmed) {
-        if (!mounted) return;
+      final transactionService = ref.read(TransactionServiceProvider);
+      
+      // Lista para armazenar apenas despesas com valor > 0
+      List<Map<String, dynamic>> despesasParaSalvar = [];
+
+      // Processa cada despesa
+      for (var despesa in _despesas) {
+        final controller = despesa['controller'] as TextEditingController;
+        final valor = _parseValue(controller.text);
+        
+
+
+        // Só adiciona se valor > 0
+        if (valor > 0) {
+          despesasParaSalvar.add({
+            'descricao': despesa['name'],
+            'valor': valor,
+          });
+          
+        } 
+      }
+
+
+      // Salva cada despesa no banco
+      int savedCount = 0;
+      for (var despesa in despesasParaSalvar) {
+        try {
+
+          final transaction = await transactionService.addTransactions(
+            descricao: despesa['descricao'],
+            tipo: 'DESPESA',
+            valor: despesa['valor'],
+            categoriaId: 1, // Ajuste conforme sua lógica de categorias
+            fixedTransaction: true,
+            diaDoMes: 5, // Dia padrão, ajuste conforme necessário
+            data: null,
+          );
+
+          savedCount++;
+          
+        } catch (e) {
+          
+          
+          // Continue tentando salvar as outras despesas
+        }
+      }
+
+
+      if (mounted) {
+        // Mostra mensagem de sucesso
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('$savedCount despesa(s) salva(s) com sucesso!'),
+            backgroundColor: Colors.green,
+            duration: const Duration(seconds: 2),
+          ),
+        );
+
+        // Pequeno delay para mostrar o snackbar
+        await Future.delayed(const Duration(milliseconds: 500));
+
+
+
         Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const VerifyEmailScreen()),
+          MaterialPageRoute(
+            builder: (context) => const DashboardScreen(),
+          ),
         );
       }
     } catch (e) {
-      // Tratar erro se necessário
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erro ao salvar despesas: ${e.toString()}'),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 5),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+        
+
+      }
     }
   }
-  
+
   @override
   Widget build(BuildContext context) {
     final Color primaryBlue = Theme.of(context).primaryColor;
@@ -85,7 +238,7 @@ class _DespesasFixasScreenState extends State<DespesasFixasScreen> {
                 return _buildDespesaTile(
                   name: despesa['name'],
                   icon: despesa['icon'],
-                  onValueChanged: (String value) {},
+                  controller: despesa['controller'],
                   primaryColor: primaryBlue,
                 );
               },
@@ -95,11 +248,7 @@ class _DespesasFixasScreenState extends State<DespesasFixasScreen> {
           Padding(
             padding: const EdgeInsets.only(left: 32, right: 32, bottom: 20, top: 10),
             child: ElevatedButton(
-              onPressed: () {
-                Navigator.of(context).pushReplacement(
-                  MaterialPageRoute(builder: (context) => const DashboardScreen()),
-                );
-              },
+              onPressed: _isLoading ? null : _saveAndContinue,
               style: ElevatedButton.styleFrom(
                 backgroundColor: primaryBlue, 
                 foregroundColor: Colors.white,
@@ -108,11 +257,21 @@ class _DespesasFixasScreenState extends State<DespesasFixasScreen> {
                   borderRadius: BorderRadius.circular(10),
                 ),
                 elevation: 5,
+                disabledBackgroundColor: primaryBlue.withOpacity(0.5),
               ),
-              child: const Text(
-                'Finalizar e Acessar o App',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
+              child: _isLoading
+                  ? const SizedBox(
+                      height: 20,
+                      width: 20,
+                      child: CircularProgressIndicator(
+                        color: Colors.white,
+                        strokeWidth: 2,
+                      ),
+                    )
+                  : const Text(
+                      'Finalizar e Acessar o App',
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
             ),
           ),
         ],
@@ -123,7 +282,7 @@ class _DespesasFixasScreenState extends State<DespesasFixasScreen> {
   Widget _buildDespesaTile({
     required String name,
     required IconData icon,
-    required ValueChanged<String> onValueChanged,
+    required TextEditingController controller,
     required Color primaryColor,
   }) {
     final TextStyle valueStyle = TextStyle(
@@ -161,9 +320,21 @@ class _DespesasFixasScreenState extends State<DespesasFixasScreen> {
             SizedBox(
               width: 120, 
               child: TextFormField(
-                keyboardType: TextInputType.number,
+                controller: controller,
+                keyboardType: const TextInputType.numberWithOptions(decimal: true),
                 textAlign: TextAlign.right,
-                onChanged: onValueChanged,
+                onChanged: (value) {
+                  // Formata o valor enquanto digita
+                  String formatted = _formatValue(value);
+                  if (formatted.isNotEmpty) {
+                    controller.value = TextEditingValue(
+                      text: formatted,
+                      selection: TextSelection.collapsed(offset: formatted.length),
+                    );
+                  }
+                  
+  
+                },
                 style: valueStyle, 
                 decoration: InputDecoration(
                   prefixText: 'R\$ ', 
