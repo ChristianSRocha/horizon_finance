@@ -253,7 +253,7 @@ class _$TransactionImpl implements _Transaction {
       @JsonKey(name: 'dia_do_mes') this.diaDoMes,
       @JsonKey(name: 'data') this.data,
       @JsonKey(name: 'categoria_id') this.categoriaId,
-      @JsonKey(name: 'fixed_transaction') required this.fixedTransaction,
+      @JsonKey(name: 'fixed_transaction') this.fixedTransaction = false,
       required this.status,
       @JsonKey(name: 'data_criacao') required this.dataCriacao});
 
@@ -353,18 +353,18 @@ class _$TransactionImpl implements _Transaction {
 
 abstract class _Transaction implements Transaction {
   const factory _Transaction(
-      {required final String id,
-      @JsonKey(name: 'usuario_id') required final String usuarioId,
-      required final TransactionType tipo,
-      required final String descricao,
-      required final double valor,
-      @JsonKey(name: 'dia_do_mes') final int? diaDoMes,
-      @JsonKey(name: 'data') final DateTime? data,
-      @JsonKey(name: 'categoria_id') final int? categoriaId,
-      @JsonKey(name: 'fixed_transaction') required final bool fixedTransaction,
-      required final TransactionStatus status,
-      @JsonKey(name: 'data_criacao')
-      required final DateTime dataCriacao}) = _$TransactionImpl;
+          {required final String id,
+          @JsonKey(name: 'usuario_id') required final String usuarioId,
+          required final TransactionType tipo,
+          required final String descricao,
+          required final double valor,
+          @JsonKey(name: 'dia_do_mes') final int? diaDoMes,
+          @JsonKey(name: 'data') final DateTime? data,
+          @JsonKey(name: 'categoria_id') final int? categoriaId,
+          @JsonKey(name: 'fixed_transaction') final bool fixedTransaction,
+          required final TransactionStatus status,
+          @JsonKey(name: 'data_criacao') required final DateTime dataCriacao}) =
+      _$TransactionImpl;
 
   factory _Transaction.fromJson(Map<String, dynamic> json) =
       _$TransactionImpl.fromJson;

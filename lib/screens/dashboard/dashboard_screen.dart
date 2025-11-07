@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' hide Provider, AuthState;
 import 'package:horizon_finance/features/transactions/services/transaction_service.dart';
 import 'package:horizon_finance/features/transactions/models/transactions.dart';
+import 'package:horizon_finance/screens/transaction/transaction_form_screen.dart';
 
 class DashboardScreen extends ConsumerStatefulWidget {
   const DashboardScreen({super.key});
@@ -160,12 +161,17 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
       bottomNavigationBar: _buildBottomNavBar(context, primaryBlue),
 
       floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          // TODO: Abrir modal de Nova Transação
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Nova transação em breve!')),
+        onPressed: () async { 
+        
+          await Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (context) => const TransactionFormScreen(initialType: TransactionType.despesa), 
+            ),
           );
+
+          _loadData();
         },
+        
         backgroundColor: primaryBlue,
         child: const Icon(Icons.add, color: Colors.white),
       ),
