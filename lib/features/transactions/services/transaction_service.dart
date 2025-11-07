@@ -16,11 +16,168 @@ final TransactionServiceProvider = Provider<TransactionService>((ref) {
 });
 
 
+class DashboardData {
+  final double saldoAtual;
+  final double receitasMes;
+  final double despesasMes;
+  final List<Transaction> ultimasTransacoes;
+
+  DashboardData({
+    required this.saldoAtual,
+    required this.receitasMes,
+    required this.despesasMes,
+    required this.ultimasTransacoes,
+  });
+}
+
+
 class TransactionService {
   final SupabaseClient _supabase;
   static const String _transactions = 'transactions';
   
   TransactionService(this._supabase);
+
+  Future<DashboardData> getDashboardData() async {
+  
+    try {
+
+      final userId = _supabase.auth.currentUser?.id;
+      if (userId == null) {
+        throw Exception('Usuário não autenticado');
+      }
+
+      // Dados para buscar as transações do mês atual
+      final now = DateTime.now();
+      final primeiroDia = DateTime(now.year, now.month, 1);
+      final ultimoDia = DateTime(now.year, now.month + 1, 0, 23, 59, 59);
+
+
+      final response = await _supabase
+          .from(_transactions)
+          .select()
+          .eq('usuario_id', userId)
+          .gte('data_criacao', primeiroDia.toIso8601String())
+          .lte('data_criacao', ultimoDia.toIso8601String())
+          .order('data_criacao', ascending: false);
+
+      final transactions = (response as List)
+          .map((json) => Transaction.fromJson(json))
+          .toList();
+
+      final receitasMes = transactions
+          .where((t) => t.tipo == TransactionType.receita)
+          .fold<double>(0, (sum, t) => sum + t.valor);
+      
+      final despesasMes = transactions
+          .where((t) => t.tipo == TransactionType.despesa)
+          .fold<double>(0, (sum, t) => sum + t.valor);
+
+      final saldoAtual = receitasMes - despesasMes;
+
+      final ultimasTransacoes = transactions.take(5).toList();
+
+      return DashboardData(
+        saldoAtual: saldoAtual,
+        receitasMes: receitasMes,
+        despesasMes: despesasMes,
+        ultimasTransacoes: ultimasTransacoes,
+      );
+    
+    } on PostgrestException catch(e) {
+      throw Exception('Erro ao buscar dados do dashboard: ${e.message}');
+    
+    } catch (e) {
+      throw Exception('Erro ao buscar dados do dashboard: ${e.toString()}');
+    }
+  } 
+
+  /// Busca apenas as receitas do mês atual
+  Future<double> getReceitasMesAtual() async {
+    try {
+      final userId = _supabase.auth.currentUser?.id;
+      if (userId == null) {
+        throw Exception('Usuário não autenticado');
+      }
+
+      final now = DateTime.now();
+      final firstDayOfMonth = DateTime(now.year, now.month, 1);
+      final lastDayOfMonth = DateTime(now.year, now.month + 1, 0, 23, 59, 59);
+
+      final response = await _supabase
+          .from(_transactions)
+          .select('valor')
+          .eq('usuario_id', userId)
+          .eq('tipo', 'RECEITA')
+          .gte('data_criacao', firstDayOfMonth.toIso8601String())
+          .lte('data_criacao', lastDayOfMonth.toIso8601String());
+
+      final total = (response as List)
+          .fold<double>(0, (sum, item) => sum + (item['valor'] as num).toDouble());
+
+      return total;
+
+    } catch (e) {
+      throw Exception('Erro ao buscar receitas: ${e.toString()}');
+    }
+  }
+
+  /// Busca apenas as despesas do mês atual
+  Future<double> getDespesasMesAtual() async {
+    try {
+      final userId = _supabase.auth.currentUser?.id;
+      if (userId == null) {
+        throw Exception('Usuário não autenticado');
+      }
+
+      final now = DateTime.now();
+      final firstDayOfMonth = DateTime(now.year, now.month, 1);
+      final lastDayOfMonth = DateTime(now.year, now.month + 1, 0, 23, 59, 59);
+
+      final response = await _supabase
+          .from(_transactions)
+          .select('valor')
+          .eq('usuario_id', userId)
+          .eq('tipo', 'DESPESA')
+          .gte('data_criacao', firstDayOfMonth.toIso8601String())
+          .lte('data_criacao', lastDayOfMonth.toIso8601String());
+
+      final total = (response as List)
+          .fold<double>(0, (sum, item) => sum + (item['valor'] as num).toDouble());
+
+      return total;
+
+    } catch (e) {
+      throw Exception('Erro ao buscar despesas: ${e.toString()}');
+    }
+  }
+
+  /// Busca as últimas transações do usuário
+  Future<List<Transaction>> getUltimasTransacoes({int limit = 5}) async {
+    try {
+
+      final userId = _supabase.auth.currentUser?.id;
+      if (userId == null) {
+        throw Exception('Usuário não autenticado');
+      }
+
+      final response = await _supabase
+          .from(_transactions)
+          .select()
+          .eq('usuario_id', userId)
+          .order('data_criacao', ascending: false)
+          .limit(limit);
+
+      final transactions = (response as List)
+          .map((json) => Transaction.fromJson(json))
+          .toList();
+
+
+      return transactions;
+
+    } catch (e) {
+      throw Exception('Erro ao buscar transações: ${e.toString()}');
+    }
+  }
 
   Future<List<Transaction>> getFixedTransactions() async {
     try {
