@@ -1,65 +1,177 @@
+import 'dart:developer' as developer;
 import 'package:flutter/material.dart';
 import 'package:horizon_finance/widgets/bottom_nav_menu.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:supabase_flutter/supabase_flutter.dart' hide Provider, AuthState;
+import 'package:horizon_finance/features/transactions/services/transaction_service.dart';
+import 'package:horizon_finance/features/transactions/models/transactions.dart';
+import 'package:horizon_finance/screens/transaction/transaction_form_screen.dart';
 
-class DashboardScreen extends StatefulWidget {
+class DashboardScreen extends ConsumerStatefulWidget {
   const DashboardScreen({super.key});
 
   @override
-  State<DashboardScreen> createState() => _DashboardScreenState();
+  ConsumerState<DashboardScreen> createState() => _DashboardScreenState();
 }
 
-class _DashboardScreenState extends State<DashboardScreen> {
-  // Simulação de dados
-  final double saldoAtual = 12500.75;
-  final double receitasMes = 8500.00;
-  final double despesasMes = 7200.25;
+class _DashboardScreenState extends ConsumerState<DashboardScreen> {
+  // Estado dos dados
+  bool _isLoading = true;
+  String? _errorMessage;
+  
+  double _saldoAtual = 0;
+  double _receitasMes = 0;
+  double _despesasMes = 0;
+  List<Transaction> _ultimasTransacoes = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadData();
+  }
+
+  Future<void> _loadData() async {
+
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    try {
+      final transactionService = ref.read(TransactionServiceProvider);
+      
+      developer.log(
+        '📡 Buscando dados do dashboard...',
+        name: 'DashboardScreen',
+      );
+
+      final dashboardData = await transactionService.getDashboardData();
+
+
+      if (mounted) {
+        setState(() {
+          _saldoAtual = dashboardData.saldoAtual;
+          _receitasMes = dashboardData.receitasMes;
+          _despesasMes = dashboardData.despesasMes;
+          _ultimasTransacoes = dashboardData.ultimasTransacoes;
+          _isLoading = false;
+        });
+
+      }
+
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+          _errorMessage = e.toString();
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erro ao carregar dados: ${e.toString()}'),
+            backgroundColor: Colors.red,
+            action: SnackBarAction(
+              label: 'Tentar novamente',
+              textColor: Colors.white,
+              onPressed: _loadData,
+            ),
+          ),
+        );
+      }
+    }
+
+  }
+
+  String _formatCurrency(double value) {
+    return value.toStringAsFixed(2).replaceAll('.', ',');
+  }
+
+  String _getGreeting() {
+    final hour = DateTime.now().hour;
+    if (hour < 12) return 'Bom dia';
+    if (hour < 18) return 'Boa tarde';
+    return 'Boa noite';
+  }
 
   @override
   Widget build(BuildContext context) {
     final Color primaryBlue = Theme.of(context).primaryColor;
     final Color secondaryColor = Theme.of(context).colorScheme.secondary;
 
+    // Mostra loading se estiver carregando
+    if (_isLoading) {
+      return Scaffold(
+        backgroundColor: Colors.white,
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              CircularProgressIndicator(color: primaryBlue),
+              const SizedBox(height: 16),
+              Text(
+                'Carregando seus dados...',
+                style: TextStyle(color: Colors.grey[600]),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
     return Scaffold(
       backgroundColor: Colors.white,
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: <Widget>[
-            // --- 1. HEADER ---
-            _buildHeader(primaryBlue),
+      body: RefreshIndicator(
+        onRefresh: _loadData,
+        color: primaryBlue,
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: <Widget>[
+              // --- 1. HEADER ---
+              _buildHeader(primaryBlue),
 
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  // --- 2. CARTÃO DE SALDO ATUAL E RESUMO ---
-                  _buildBalanceSummaryCard(primaryBlue, secondaryColor),
-                  const SizedBox(height: 25),
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    // --- 2. CARTÃO DE SALDO ATUAL E RESUMO ---
+                    _buildBalanceSummaryCard(primaryBlue, secondaryColor),
+                    const SizedBox(height: 25),
 
-                  // --- 3. PROJEÇÃO DOS PRÓXIMOS 30 DIAS (Placeholder) ---
-                  _buildProjectionChartCard(primaryBlue),
-                  const SizedBox(height: 25),
+                    // --- 3. PROJEÇÃO DOS PRÓXIMOS 30 DIAS (Placeholder) ---
+                    _buildProjectionChartCard(primaryBlue),
+                    const SizedBox(height: 25),
 
-                  // --- 4. METAS EM ANDAMENTO ---
-                  _buildGoalsSection(primaryBlue),
-                  const SizedBox(height: 25),
+                    // --- 4. METAS EM ANDAMENTO ---
+                    _buildGoalsSection(primaryBlue),
+                    const SizedBox(height: 25),
 
-                  // --- 5. ATIVIDADE RECENTE ---
-                  _buildRecentActivitySection(primaryBlue),
-                ],
+                    // --- 5. ATIVIDADE RECENTE ---
+                    _buildRecentActivitySection(primaryBlue),
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
       // Navegação inferior
       bottomNavigationBar: _buildBottomNavBar(context, primaryBlue),
 
       floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          // TODO: Abrir modal de Nova Transação
+        onPressed: () async { 
+        
+          await Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (context) => const TransactionFormScreen(initialType: TransactionType.despesa), 
+            ),
+          );
+
+          _loadData();
         },
+        
         backgroundColor: primaryBlue,
         child: const Icon(Icons.add, color: Colors.white),
       ),
@@ -70,6 +182,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
   // --- WIDGETS AUXILIARES ---
 
   Widget _buildHeader(Color primaryBlue) {
+    final user = Supabase.instance.client.auth.currentUser;
+    final userName = user?.userMetadata?['name'] ?? 'Usuário';
+
     return Container(
       padding: const EdgeInsets.fromLTRB(20, 50, 20, 20),
       decoration: const BoxDecoration(
@@ -82,20 +197,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          const Column(
+          Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
+              const Text(
                 'Bem-vindo ao Horizons Finance!',
                 style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
                     color: Color(0xFF424242)),
               ),
-              SizedBox(height: 5),
+              const SizedBox(height: 5),
               Text(
-                'Boa noite, Usuário!',
-                style: TextStyle(fontSize: 14, color: Colors.grey),
+                '${_getGreeting()}, $userName!',
+                style: const TextStyle(fontSize: 14, color: Colors.grey),
               ),
             ],
           ),
@@ -125,11 +240,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 style: TextStyle(fontSize: 16, color: Colors.grey)),
             const SizedBox(height: 5),
             Text(
-              'R\$ ${saldoAtual.toStringAsFixed(2).replaceAll('.', ',')}',
+              'R\$ ${_formatCurrency(_saldoAtual)}',
               style: TextStyle(
                 fontSize: 32,
                 fontWeight: FontWeight.bold,
-                color: primaryBlue,
+                color: _saldoAtual >= 0 ? primaryBlue : Colors.red,
               ),
             ),
             const Divider(height: 30),
@@ -138,12 +253,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
               children: [
                 _buildIncomeExpenseItem(
                   label: 'Receitas',
-                  amount: receitasMes,
+                  amount: _receitasMes,
                   color: const Color(0xFF2E7D32), // Verde para Receita
                 ),
                 _buildIncomeExpenseItem(
                   label: 'Despesas',
-                  amount: despesasMes,
+                  amount: _despesasMes,
                   color: const Color(0xFFE53935), // Vermelho para Despesa
                 ),
               ],
@@ -162,7 +277,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         Text(label, style: const TextStyle(fontSize: 14, color: Colors.grey)),
         const SizedBox(height: 4),
         Text(
-          'R\$ ${amount.toStringAsFixed(2).replaceAll('.', ',')}',
+          'R\$ ${_formatCurrency(amount)}',
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.bold,
@@ -259,25 +374,72 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Atividade Recente',
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-            color: primaryBlue.withOpacity(0.9),
-          ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              'Atividade Recente',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: primaryBlue.withOpacity(0.9),
+              ),
+            ),
+            if (_ultimasTransacoes.isEmpty)
+              Text(
+                'Nenhuma transação',
+                style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+              ),
+          ],
         ),
         const SizedBox(height: 10),
-        _buildRecentTransaction('Salário', '+ R\$ 5.000,00', true),
-        _buildRecentTransaction('Aluguel', '- R\$ 1.500,00', false),
+        
+        if (_ultimasTransacoes.isEmpty)
+          Card(
+            elevation: 1,
+            child: Padding(
+              padding: const EdgeInsets.all(20.0),
+              child: Center(
+                child: Column(
+                  children: [
+                    Icon(Icons.inbox_outlined, size: 48, color: Colors.grey[400]),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Nenhuma transação registrada ainda',
+                      style: TextStyle(color: Colors.grey[600]),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          )
+        else
+          ..._ultimasTransacoes.map((transaction) {
+            return _buildRecentTransaction(transaction);
+          }).toList(),
       ],
     );
   }
 
-  Widget _buildRecentTransaction(
-      String category, String amount, bool isIncome) {
-    final Color statusColor =
-        isIncome ? const Color(0xFF2E7D32) : const Color(0xFFE53935);
+  Widget _buildRecentTransaction(Transaction transaction) {
+    final isIncome = transaction.tipo == TransactionType.receita;
+    final statusColor = isIncome ? const Color(0xFF2E7D32) : const Color(0xFFE53935);
+    final sign = isIncome ? '+' : '-';
+    
+    // Calcula há quanto tempo foi criada
+    final now = DateTime.now();
+    final diff = now.difference(transaction.dataCriacao);
+    String timeAgo;
+    
+    if (diff.inDays > 0) {
+      timeAgo = '${diff.inDays}d atrás';
+    } else if (diff.inHours > 0) {
+      timeAgo = '${diff.inHours}h atrás';
+    } else if (diff.inMinutes > 0) {
+      timeAgo = '${diff.inMinutes}min atrás';
+    } else {
+      timeAgo = 'Agora';
+    }
 
     return ListTile(
       leading: CircleAvatar(
@@ -287,17 +449,21 @@ class _DashboardScreenState extends State<DashboardScreen> {
           color: statusColor,
         ),
       ),
-      title:
-          Text(category, style: const TextStyle(fontWeight: FontWeight.w500)),
-      subtitle: const Text('Hoje'),
+      title: Text(
+        transaction.descricao,
+        style: const TextStyle(fontWeight: FontWeight.w500),
+      ),
+      subtitle: Text(timeAgo),
       trailing: Text(
-        amount,
+        '$sign R\$ ${_formatCurrency(transaction.valor)}',
         style: TextStyle(
           color: statusColor,
           fontWeight: FontWeight.bold,
         ),
       ),
-      onTap: () {},
+      onTap: () {
+        /// TODO: Abrir detalhes da transação
+      },
     );
   }
 
