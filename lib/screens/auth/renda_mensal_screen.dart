@@ -6,6 +6,7 @@ import 'dart:developer' as developer;
 import 'package:supabase_flutter/supabase_flutter.dart' hide Provider, AuthState;
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'verify_email_screen.dart';
+import 'package:horizon_finance/features/transactions/models/transactions.dart';
 
 class RendaMensalScreen extends ConsumerStatefulWidget {
   const RendaMensalScreen({super.key});
@@ -83,7 +84,7 @@ class _RendaMensalScreenState extends ConsumerState<RendaMensalScreen> {
     try {
 
       final transactionService = ref.read(TransactionServiceProvider);
-      final transaction = await transactionService.addTransactions(descricao: 'Renda Mensal', tipo: 'RECEITA', valor: valor, categoriaId: 1, fixedTransaction: true, diaDoMes: 5, data: null);
+      final transaction = await transactionService.addTransaction(descricao: 'Renda Mensal', tipo: TransactionType.receita, valor: valor, categoriaId: 1, fixedTransaction: true, diaDoMes: 5, data: null);
 
       developer.log(
         'Transação salva com sucesso: ${transaction}',

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:horizon_finance/screens/dashboard/dashboard_screen.dart';
 import 'package:horizon_finance/features/transactions/services/transaction_service.dart';
+import 'package:horizon_finance/features/transactions/models/transactions.dart';
 
 class DespesasFixasScreen extends ConsumerStatefulWidget {
   const DespesasFixasScreen({super.key});
@@ -131,9 +132,9 @@ class _DespesasFixasScreenState extends ConsumerState<DespesasFixasScreen> {
       for (var despesa in despesasParaSalvar) {
         try {
 
-          final transaction = await transactionService.addTransactions(
+          final transaction = await transactionService.addTransaction(
             descricao: despesa['descricao'],
-            tipo: 'DESPESA',
+            tipo: TransactionType.despesa,
             valor: despesa['valor'],
             categoriaId: 1, // Ajuste conforme sua lógica de categorias
             fixedTransaction: true,

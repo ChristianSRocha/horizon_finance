@@ -74,13 +74,16 @@ class TransactionService {
 
       final saldoAtual = receitasMes - despesasMes;
 
-      final ultimasTransacoes = transactions.take(5).toList();
+      final ultimasTransacoesFiltradas = transactions
+          .where((t) => t.fixedTransaction == false)
+          .take(5) 
+          .toList();
 
       return DashboardData(
         saldoAtual: saldoAtual,
         receitasMes: receitasMes,
         despesasMes: despesasMes,
-        ultimasTransacoes: ultimasTransacoes,
+        ultimasTransacoes: ultimasTransacoesFiltradas,
       );
     
     } on PostgrestException catch(e) {
@@ -216,14 +219,14 @@ class TransactionService {
     }
   }
 
-  Future<Transaction> addTransactions({
+  Future<Transaction> addTransaction({
     required String descricao,
-    required String tipo,
+    required TransactionType tipo,
     required double valor,
     DateTime? data, 
     int? diaDoMes,
     required int categoriaId,
-    required bool fixedTransaction,
+    bool? fixedTransaction,
   }) async {
 
 
@@ -241,10 +244,12 @@ class TransactionService {
       
        //  ETAPA 2: CONSTRUÇÃO DOS DADOS
       final now = DateTime.now();
+      final tipoString = tipo == TransactionType.receita ? 'RECEITA' : 'DESPESA';
+
       final dataToInsert = {
         'descricao': descricao,
         'usuario_id': userId,
-        'tipo': tipo,
+        'tipo': tipoString,
         'valor': valor,
         'data': data?.toIso8601String(),
         'categoria_id': categoriaId,
@@ -266,18 +271,13 @@ class TransactionService {
       name: 'TransactionService',
     );
 
-      //  ETAPA 2.2: CONSTRUÇÃO DA QUERY
-      final query = _supabase
+      //  ETAPA 3: CONSTRUÇÃO DA QUERY
+      final response = await _supabase
           .from(_transactions)
           .insert(dataToInsert)
           .select()
           .single();
       
-
-      //  ETAPA 3: EXECUÇÃO
-      final response = await query;
-    
-
       //  ETAPA 4: CONVERSÃO JSON → DART
       return Transaction.fromJson(response);
       
@@ -289,5 +289,78 @@ class TransactionService {
       throw Exception('Erro ao buscar: ${e.toString()}');
     }
   }
+
+
+  Future<Transaction> updateTransaction({
+    required String id,
+    required String descricao,
+    required TransactionType tipo,
+    required double valor,
+    required DateTime data,
+    required int categoriaId,
+    required bool fixedTransaction,
+  }) async {
+    
+    try {
+      final userId = _supabase.auth.currentUser?.id;
+      if (userId == null) {
+        throw Exception('Usuário não autenticado');
+      }
+
+      final tipoString = tipo == TransactionType.receita ? 'RECEITA' : 'DESPESA';
+      
+      final dataToUpdate = {
+        'descricao': descricao,
+        'tipo': tipoString,
+        'valor': valor,
+        'data': data.toIso8601String(),
+        'categoria_id': categoriaId,
+        'fixed_transaction': fixedTransaction,
+      };
+
+
+      final response = await _supabase
+          .from(_transactions)
+          .update(dataToUpdate)
+          .eq('id', id)
+          .eq('usuario_id', userId) // Segurança: só atualiza se for do usuário
+          .select()
+          .single();
+
+      return Transaction.fromJson(response);
+      
+    } on PostgrestException catch (e) {
+      throw Exception('Erro ao atualizar transação: ${e.message}');
+
+    } catch (e) {
+      throw Exception('Erro ao atualizar transação: ${e.toString()}');
+    }
+  }
+
+  /// Deleta uma transação (soft delete - muda status para INATIVO)
+  Future<void> deleteTransaction(String id) async {
+    
+    try {
+      final userId = _supabase.auth.currentUser?.id;
+      if (userId == null) {
+        throw Exception('Usuário não autenticado');
+      }
+
+      // Soft delete: apenas muda o status
+      await _supabase
+          .from(_transactions)
+          .update({'status': 'INATIVO'})
+          .eq('id', id)
+          .eq('usuario_id', userId); 
+
+      
+    } on PostgrestException catch (e) {
+      throw Exception('Erro ao deletar transação: ${e.message}');
+
+    } catch (e) {
+      throw Exception('Erro ao deletar transação: ${e.toString()}');
+    }
+  }
+
   
 }

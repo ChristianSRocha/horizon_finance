@@ -17,7 +17,7 @@ _$TransactionImpl _$$TransactionImplFromJson(Map<String, dynamic> json) =>
       data:
           json['data'] == null ? null : DateTime.parse(json['data'] as String),
       categoriaId: (json['categoria_id'] as num?)?.toInt(),
-      fixedTransaction: json['fixed_transaction'] as bool,
+      fixedTransaction: json['fixed_transaction'] as bool? ?? false,
       status: $enumDecode(_$TransactionStatusEnumMap, json['status']),
       dataCriacao: DateTime.parse(json['data_criacao'] as String),
     );

@@ -31,7 +31,8 @@ class Transaction with _$Transaction {
     @JsonKey(name: 'dia_do_mes') int? diaDoMes,
     @JsonKey(name: 'data') DateTime? data,
     @JsonKey(name: 'categoria_id') int? categoriaId, 
-    @JsonKey(name: 'fixed_transaction') required bool fixedTransaction,
+    @Default(false)
+    @JsonKey(name: 'fixed_transaction') bool fixedTransaction,
     
     required TransactionStatus status,
     
