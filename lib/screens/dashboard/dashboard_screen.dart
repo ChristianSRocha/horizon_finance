@@ -2,10 +2,12 @@ import 'dart:developer' as developer;
 import 'package:flutter/material.dart';
 import 'package:horizon_finance/widgets/bottom_nav_menu.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:supabase_flutter/supabase_flutter.dart' hide Provider, AuthState;
+import 'package:supabase_flutter/supabase_flutter.dart'
+    hide Provider, AuthState;
 import 'package:horizon_finance/features/transactions/services/transaction_service.dart';
 import 'package:horizon_finance/features/transactions/models/transactions.dart';
 import 'package:horizon_finance/screens/transaction/transaction_form_screen.dart';
+import 'package:horizon_finance/widgets/pie_chart_widget.dart';
 
 class DashboardScreen extends ConsumerStatefulWidget {
   const DashboardScreen({super.key});
@@ -18,7 +20,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   // Estado dos dados
   bool _isLoading = true;
   String? _errorMessage;
-  
+
   double _saldoAtual = 0;
   double _receitasMes = 0;
   double _despesasMes = 0;
@@ -31,7 +33,6 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   }
 
   Future<void> _loadData() async {
-
     setState(() {
       _isLoading = true;
       _errorMessage = null;
@@ -39,14 +40,13 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
 
     try {
       final transactionService = ref.read(TransactionServiceProvider);
-      
+
       developer.log(
         '📡 Buscando dados do dashboard...',
         name: 'DashboardScreen',
       );
 
       final dashboardData = await transactionService.getDashboardData();
-
 
       if (mounted) {
         setState(() {
@@ -56,9 +56,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
           _ultimasTransacoes = dashboardData.ultimasTransacoes;
           _isLoading = false;
         });
-
       }
-
     } catch (e) {
       if (mounted) {
         setState(() {
@@ -79,7 +77,6 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
         );
       }
     }
-
   }
 
   String _formatCurrency(double value) {
@@ -161,17 +158,16 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
       bottomNavigationBar: _buildBottomNavBar(context, primaryBlue),
 
       floatingActionButton: FloatingActionButton(
-        onPressed: () async { 
-        
+        onPressed: () async {
           await Navigator.of(context).push(
             MaterialPageRoute(
-              builder: (context) => const TransactionFormScreen(initialType: TransactionType.despesa), 
+              builder: (context) => const TransactionFormScreen(
+                  initialType: TransactionType.despesa),
             ),
           );
 
           _loadData();
         },
-        
         backgroundColor: primaryBlue,
         child: const Icon(Icons.add, color: Colors.white),
       ),
@@ -303,16 +299,17 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
             ),
             const SizedBox(height: 15),
             Container(
-              height: 150,
+              height: 200,
               decoration: BoxDecoration(
                 color: primaryBlue.withOpacity(0.05),
                 borderRadius: BorderRadius.circular(10),
                 border: Border.all(color: primaryBlue.withOpacity(0.3)),
               ),
-              alignment: Alignment.center,
-              child: const Text(
-                'GRÁFICO DE PROJEÇÃO (FL_CHART AQUI)',
-                style: TextStyle(color: Colors.grey),
+              padding: const EdgeInsets.all(8),
+              // Usando o novo widget de pie chart
+              child: DashboardPieChart(
+                receitas: _receitasMes,
+                despesas: _despesasMes,
               ),
             ),
             const SizedBox(height: 10),
@@ -393,7 +390,6 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
           ],
         ),
         const SizedBox(height: 10),
-        
         if (_ultimasTransacoes.isEmpty)
           Card(
             elevation: 1,
@@ -402,7 +398,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
               child: Center(
                 child: Column(
                   children: [
-                    Icon(Icons.inbox_outlined, size: 48, color: Colors.grey[400]),
+                    Icon(Icons.inbox_outlined,
+                        size: 48, color: Colors.grey[400]),
                     const SizedBox(height: 8),
                     Text(
                       'Nenhuma transação registrada ainda',
@@ -423,14 +420,15 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
 
   Widget _buildRecentTransaction(Transaction transaction) {
     final isIncome = transaction.tipo == TransactionType.receita;
-    final statusColor = isIncome ? const Color(0xFF2E7D32) : const Color(0xFFE53935);
+    final statusColor =
+        isIncome ? const Color(0xFF2E7D32) : const Color(0xFFE53935);
     final sign = isIncome ? '+' : '-';
-    
+
     // Calcula há quanto tempo foi criada
     final now = DateTime.now();
     final diff = now.difference(transaction.dataCriacao);
     String timeAgo;
-    
+
     if (diff.inDays > 0) {
       timeAgo = '${diff.inDays}d atrás';
     } else if (diff.inHours > 0) {
