@@ -1,5 +1,4 @@
 // lib/features/transactions/models/transactions.dart
-
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 part 'transactions.freezed.dart';
