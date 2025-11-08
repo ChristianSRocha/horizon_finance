@@ -28,13 +28,13 @@ class _LoginCadastroScreenState extends ConsumerState<LoginCadastroScreen> {
   Future<void> _handleLogin() async {
     if (_formKey.currentState!.validate()) {
       try {
-        await ref.read(authServiceProvider.notifier).signIn(
+        final user = await ref.read(authServiceProvider.notifier).signIn(
               email: _emailController.text.trim(),
               password: _passwordController.text,
             );
 
-        if (mounted) {
-          // Mostrar mensagem de sucesso
+        if (user != null && mounted) {
+        // Mostrar mensagem de sucesso
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text('Login feito com sucesso!'),
@@ -42,12 +42,44 @@ class _LoginCadastroScreenState extends ConsumerState<LoginCadastroScreen> {
               duration: Duration(seconds: 2),
             ),
           );
-
-          // Redirecionar para o Dashboard
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (context) => const RendaMensalScreen()),
-          );
         }
+        
+        try {
+          // Pega o cliente Supabase (você precisa ter o provider dele)
+          final supabase = ref.read(supabaseClientProvider); 
+          
+          final profileData = await supabase
+              .from('profiles')       
+              .select('onboarding')  
+              .eq('id', user.id)   
+              .single();             
+
+          // 4. Verifica o 'onboarding' que veio do PROFILE
+          final bool isOnboardingComplete = profileData['onboarding'] == true;
+          
+          // 5. Redireciona com base no dado CORRETO
+          if (isOnboardingComplete) {
+            Navigator.of(context).pushReplacement(
+              MaterialPageRoute(builder: (context) => const DashboardScreen()),
+            );
+          } else {
+            Navigator.of(context).pushReplacement(
+              MaterialPageRoute(builder: (context) => const RendaMensalScreen()),
+            );
+          }
+
+        } catch (e) {
+          // Erro se não conseguir buscar o 'profile'
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Erro ao carregar dados do perfil: ${e.toString()}'),
+                backgroundColor: Colors.red,
+              ),
+            );
+          }
+        }
+    
       } catch (e) {
         // Erro no login
         if (mounted) {

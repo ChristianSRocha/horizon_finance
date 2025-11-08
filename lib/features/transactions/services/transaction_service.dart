@@ -85,6 +85,8 @@ class TransactionService {
         despesasMes: despesasMes,
         ultimasTransacoes: ultimasTransacoesFiltradas,
       );
+
+      
     
     } on PostgrestException catch(e) {
       throw Exception('Erro ao buscar dados do dashboard: ${e.message}');

@@ -73,3 +73,7 @@ CREATE TRIGGER set_updated_at
 
 GRANT USAGE ON SCHEMA public TO anon, authenticated;
 GRANT ALL ON public.profiles TO anon, authenticated;
+
+ALTER TABLE profiles 
+ADD column 
+onboarding bool NOT NULL default false
