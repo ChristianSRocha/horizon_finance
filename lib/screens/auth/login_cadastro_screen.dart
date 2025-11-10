@@ -4,6 +4,7 @@ import 'package:horizon_finance/screens/dashboard/dashboard_screen.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:horizon_finance/features/auth/services/auth_service.dart';
 import 'package:horizon_finance/screens/auth/renda_mensal_screen.dart';
+import 'package:email_validator/email_validator.dart';
 
 class LoginCadastroScreen extends ConsumerStatefulWidget {
   const LoginCadastroScreen({super.key});
@@ -98,6 +99,100 @@ class _LoginCadastroScreenState extends ConsumerState<LoginCadastroScreen> {
     }
   }
 
+  Future<void> _handlePasswordReset() async {
+    final emailController = TextEditingController();
+    bool isLoading = false;
+    String? errorText;
+
+    return showDialog<void>(
+      context: context,
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: const Text('Resetar Senha'),
+              content: TextField(
+                controller: emailController,
+                decoration: InputDecoration(
+                  hintText: "Seu e-mail",
+                  errorText: errorText,
+                ),
+              ),
+              actions: <Widget>[
+                TextButton(
+                  child: const Text('Cancelar'),
+                  onPressed: () {
+                    if (!isLoading) {
+                      Navigator.of(context).pop();
+                    }
+                  },
+                ),
+                TextButton(
+                  child: isLoading
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                          ),
+                        )
+                      : const Text('Enviar'),
+                  onPressed: () async {
+                    if (isLoading) return;
+
+                    if (emailController.text.isEmpty ||
+                        !EmailValidator.validate(emailController.text)) {
+                      setState(() {
+                        errorText = 'E-mail inválido';
+                      });
+                      return;
+                    }
+
+                    setState(() {
+                      errorText = null;
+                      isLoading = true;
+                    });
+
+                    try {
+                      await ref
+                          .read(authServiceProvider.notifier)
+                          .resetPassword(emailController.text.trim());
+                      if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text(
+                                'Se uma conta existir para este e-mail, um link para reset de senha foi enviado.'),
+                            backgroundColor: Colors.green,
+                          ),
+                        );
+                        Navigator.of(context).pop();
+                      }
+                    } catch (e) {
+                      if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Erro ao enviar e-mail de reset.'),
+                            backgroundColor: Colors.red,
+                          ),
+                        );
+                      }
+                    } finally {
+                      if (mounted) {
+                        setState(() {
+                          isLoading = false;
+                        });
+                      }
+                    }
+                  },
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final Color primaryColor = Theme.of(context).primaryColor;
@@ -187,7 +282,7 @@ class _LoginCadastroScreenState extends ConsumerState<LoginCadastroScreen> {
                         ),
                         const SizedBox(height: 15),
                         TextButton(
-                          onPressed: () {},
+                          onPressed: _handlePasswordReset,
                           child: Text(
                             'Esqueceu a senha?',
                             style: TextStyle(color: secondaryColor),

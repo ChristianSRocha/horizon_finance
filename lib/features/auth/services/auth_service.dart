@@ -110,6 +110,24 @@ class AuthService extends Notifier<AuthState> {
     state = const AuthState();
   }
 
+  Future<void> resetPassword(String email) async {
+    try {
+      state = state.copyWith(isLoading: true, errorMessage: null);
+      await _supabase.auth.resetPasswordForEmail(email);
+      state = state.copyWith(isLoading: false);
+    } on AuthException catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        errorMessage: _getErrorMessage(e.message),
+      );
+      rethrow;
+    } catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        errorMessage: 'Erro ao resetar a senha: ${e.toString()}',
+      );
+      rethrow;
+    }
 
   Future<void> concluirOnboarding() async {
 
