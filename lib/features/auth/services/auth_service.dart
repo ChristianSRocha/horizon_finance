@@ -64,7 +64,7 @@ class AuthService extends Notifier<AuthState> {
     }
   }
 
-  Future<void> signIn({
+  Future<User> signIn({
     required String email,
     required String password,
   }) async {
@@ -83,6 +83,11 @@ class AuthService extends Notifier<AuthState> {
           userId: response.user!.id,
           email: response.user!.email,
         );
+
+      return response.user!;
+      
+      } else {
+        throw Exception('Falha ao fazer login');
       }
     } on AuthException catch (e) {
       state = state.copyWith(
@@ -98,6 +103,7 @@ class AuthService extends Notifier<AuthState> {
       rethrow;
     }
   }
+
 
   Future<void> signOut() async {
     await _supabase.auth.signOut();
@@ -122,6 +128,21 @@ class AuthService extends Notifier<AuthState> {
       );
       rethrow;
     }
+
+  Future<void> concluirOnboarding() async {
+
+    final user = _supabase.auth.currentUser;
+
+    if (user == null){
+      throw Exception('Usuário não autenticado');
+    }
+
+    await _supabase
+        .from('profiles')
+        .update({'onboarding': true})
+        .eq('id', user.id);
+
+    return;
   }
 
   String _getErrorMessage(String message) {

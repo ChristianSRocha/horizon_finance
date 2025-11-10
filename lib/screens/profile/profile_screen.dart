@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:horizon_finance/features/auth/services/auth_service.dart';
+import 'package:horizon_finance/screens/auth/login_cadastro_screen.dart';
 import 'package:horizon_finance/widgets/bottom_nav_menu.dart';
 
-class ProfileScreen extends StatelessWidget {
+class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final Color primaryBlue = Theme.of(context).primaryColor;
 
     return Scaffold(
@@ -57,17 +60,28 @@ class ProfileScreen extends StatelessWidget {
               ),
             ),
             Card(
-              margin: const EdgeInsets.symmetric(vertical: 8),
-              child: ListTile(
-                leading: const Icon(Icons.logout, color: Colors.red),
-                title: const Text('Sair'),
-                onTap: () {
-                  // Ajuste a rota de login conforme seu app
-                  Navigator.of(context).pushReplacementNamed('/login');
-                },
-              ),
-            ),
-          ],
+  margin: const EdgeInsets.symmetric(vertical: 8),
+  child: ListTile(
+    leading: const Icon(Icons.logout, color: Colors.red),
+    title: const Text('Sair'),
+    onTap: () async {
+      try {
+        await ref.read(authServiceProvider.notifier).signOut();
+
+        if (context.mounted) {
+          Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(builder: (_) => const LoginCadastroScreen()),
+            (route) => false,
+          );
+        }
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erro ao sair: $e')),
+        );
+      }
+    },
+  ),
+), ],
         ),
       ),
       bottomNavigationBar: BottomNavMenu(

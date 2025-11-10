@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:horizon_finance/app_router.dart';
 import 'package:horizon_finance/screens/dashboard/dashboard_screen.dart';
 import 'package:horizon_finance/screens/auth/password_reset_screen.dart';
+import 'package:horizon_finance/screens/auth/auth_gate.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:horizon_finance/screens/auth/login_cadastro_screen.dart';
 
@@ -95,6 +96,7 @@ class _AuthHandlerState extends State<AuthHandler> {
       body: Center(
         child: CircularProgressIndicator(),
       ),
+      home:  const AuthGate(),
     );
   }
 }
