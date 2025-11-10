@@ -124,6 +124,30 @@ class AuthService extends Notifier<AuthState> {
     }
   }
 
+  Future<void> updateUserPassword(String newPassword) async {
+    try {
+      state = state.copyWith(isLoading: true, errorMessage: null);
+      await _supabase.auth.updateUser(
+        UserAttributes(
+          password: newPassword,
+        ),
+      );
+      state = state.copyWith(isLoading: false);
+    } on AuthException catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        errorMessage: _getErrorMessage(e.message),
+      );
+      rethrow;
+    } catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        errorMessage: 'Erro ao atualizar a senha: ${e.toString()}',
+      );
+      rethrow;
+    }
+  }
+
   String _getErrorMessage(String message) {
     if (message.contains('already registered')) {
       return 'Este e-mail já está cadastrado';

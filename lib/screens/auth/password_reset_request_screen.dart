@@ -3,26 +3,27 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:horizon_finance/features/auth/services/auth_service.dart';
 
-class PasswordResetScreen extends ConsumerStatefulWidget {
-  const PasswordResetScreen({super.key});
+class PasswordResetRequestScreen extends ConsumerStatefulWidget {
+  const PasswordResetRequestScreen({super.key});
 
   @override
-  ConsumerState<PasswordResetScreen> createState() =>
-      _PasswordResetScreenState();
+  ConsumerState<PasswordResetRequestScreen> createState() =>
+      _PasswordResetRequestScreenState();
 }
 
-class _PasswordResetScreenState extends ConsumerState<PasswordResetScreen> {
-  final TextEditingController _passwordController = TextEditingController();
+class _PasswordResetRequestScreenState
+    extends ConsumerState<PasswordResetRequestScreen> {
+  final TextEditingController _emailController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
   bool _isLoading = false;
 
   @override
   void dispose() {
-    _passwordController.dispose();
+    _emailController.dispose();
     super.dispose();
   }
 
-  Future<void> _handlePasswordReset() async {
+  Future<void> _handlePasswordResetRequest() async {
     if (_formKey.currentState!.validate()) {
       setState(() {
         _isLoading = true;
@@ -30,12 +31,12 @@ class _PasswordResetScreenState extends ConsumerState<PasswordResetScreen> {
       try {
         await ref
             .read(authServiceProvider.notifier)
-            .updateUserPassword(_passwordController.text);
+            .resetPassword(_emailController.text);
 
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text('Senha atualizada com sucesso!'),
+              content: Text('E-mail de redefinição de senha enviado com sucesso!'),
               backgroundColor: Colors.green,
             ),
           );
@@ -47,7 +48,7 @@ class _PasswordResetScreenState extends ConsumerState<PasswordResetScreen> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(ref.read(authServiceProvider).errorMessage ??
-                  'Erro ao atualizar a senha.'),
+                  'Erro ao enviar e-mail de redefinição de senha.'),
               backgroundColor: Colors.red,
             ),
           );
@@ -75,27 +76,23 @@ class _PasswordResetScreenState extends ConsumerState<PasswordResetScreen> {
           child: Column(
             children: [
               TextFormField(
-                controller: _passwordController,
+                controller: _emailController,
                 decoration: const InputDecoration(
-                  labelText: 'Nova Senha',
+                  labelText: 'E-mail',
                 ),
-                obscureText: true,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'Por favor, insira a nova senha.';
-                  }
-                  if (value.length < 6) {
-                    return 'A senha deve ter pelo menos 6 caracteres.';
+                    return 'Por favor, insira o seu e-mail.';
                   }
                   return null;
                 },
               ),
               const SizedBox(height: 20),
               ElevatedButton(
-                onPressed: _isLoading ? null : _handlePasswordReset,
+                onPressed: _isLoading ? null : _handlePasswordResetRequest,
                 child: _isLoading
                     ? const CircularProgressIndicator()
-                    : const Text('Atualizar Senha'),
+                    : const Text('Enviar E-mail de Redefinição'),
               ),
             ],
           ),

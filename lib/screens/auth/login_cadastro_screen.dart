@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:horizon_finance/features/auth/services/auth_service.dart';
 import 'package:horizon_finance/screens/auth/renda_mensal_screen.dart';
 import 'package:email_validator/email_validator.dart';
+import 'package:go_router/go_router.dart';
 
 class LoginCadastroScreen extends ConsumerStatefulWidget {
   const LoginCadastroScreen({super.key});
@@ -44,10 +45,8 @@ class _LoginCadastroScreenState extends ConsumerState<LoginCadastroScreen> {
             ),
           );
 
-          // Redirecionar para o Dashboard
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (context) => const RendaMensalScreen()),
-          );
+          // Navega para o dashboard após o login bem-sucedido.
+          context.go('/dashboard');
         }
       } catch (e) {
         // Erro no login
@@ -261,11 +260,7 @@ class _LoginCadastroScreenState extends ConsumerState<LoginCadastroScreen> {
                           width: double.infinity,
                           child: OutlinedButton(
                             onPressed: () {
-                              Navigator.of(context).push(
-                                MaterialPageRoute(
-                                    builder: (context) =>
-                                        const CadastroScreen()),
-                              );
+                              context.push('/cadastro');
                             },
                             style: OutlinedButton.styleFrom(
                               foregroundColor: primaryColor,
