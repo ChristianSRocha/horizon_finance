@@ -10,7 +10,7 @@ class DashboardService {
       final userId = _supabase.auth.currentUser?.id;
       if (userId == null) throw Exception('Usuário não autenticado');
 
-      // Busca TODAS as transações do usuário (receitas e despesas)
+      // Busca TODAS as transações do usuário (RECEITAs e despesas)
       final response = await _supabase
           .from('transactions')
           .select('valor, tipo')
@@ -23,9 +23,9 @@ class DashboardService {
         final valor = (transaction['valor'] as num).toDouble();
         final tipo = transaction['tipo'] as String;
         
-        if (tipo == 'receita') {
+        if (tipo == 'RECEITA') {
           balance += valor;
-        } else if (tipo == 'despesa') {
+        } else if (tipo == 'DESPESA') {
           balance -= valor;
         }
       }
@@ -50,7 +50,7 @@ class DashboardService {
           .from('transactions')
           .select('valor, data')
           .eq('usuario_id', userId)
-          .eq('tipo', 'despesa')
+          .eq('tipo', 'DESPESA')
           .gte('data', thirtyDaysAgo.toIso8601String());
 
       if (response.isEmpty) {

@@ -2,6 +2,7 @@ import 'dart:developer' as developer;
 import 'package:flutter/material.dart';
 import 'package:horizon_finance/widgets/bottom_nav_menu.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:horizon_finance/widgets/projection_chart_card.dart';
 import 'package:supabase_flutter/supabase_flutter.dart'
     hide Provider, AuthState;
 import 'package:horizon_finance/features/transactions/services/transaction_service.dart';
@@ -135,6 +136,9 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                   children: [
                     // --- 2. CARTÃO DE SALDO ATUAL E RESUMO ---
                     _buildBalanceSummaryCard(primaryBlue, secondaryColor),
+                    const SizedBox(height: 25),
+
+                    const ProjectionChartCard(),
                     const SizedBox(height: 25),
 
                     // --- 3. PROJEÇÃO DOS PRÓXIMOS 30 DIAS (Placeholder) ---
