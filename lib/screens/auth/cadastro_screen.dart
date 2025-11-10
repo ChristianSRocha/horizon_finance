@@ -4,6 +4,7 @@ import 'package:horizon_finance/screens/auth/login_cadastro_screen.dart';
 import 'package:horizon_finance/screens/auth/renda_mensal_screen.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'verify_email_screen.dart';
+import 'package:go_router/go_router.dart';
 import 'package:horizon_finance/features/auth/services/auth_service.dart';
 
 // MUDANÇA 1: StatefulWidget → ConsumerStatefulWidget
@@ -54,9 +55,7 @@ class _CadastroScreenState extends ConsumerState<CadastroScreen> {
             ),
           );
 
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (context) => const LoginCadastroScreen()),
-          );
+          context.go('/login');
         }
       } catch (e) {
         // Erro no cadastro
@@ -89,8 +88,8 @@ class _CadastroScreenState extends ConsumerState<CadastroScreen> {
         elevation: 0,
         title: Text('Criar Conta', style: TextStyle(color: primaryColor)),
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: primaryColor),
-          onPressed: isLoading ? null : () => Navigator.pop(context), // Desabilita durante loading
+          icon: Icon(Icons.arrow_back, color: primaryColor), // Desabilita durante loading
+          onPressed: isLoading ? null : () => context.pop(),
         ),
       ),
       body: Center(

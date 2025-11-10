@@ -3,8 +3,11 @@ import 'package:horizon_finance/screens/auth/cadastro_screen.dart';
 import 'package:horizon_finance/screens/dashboard/dashboard_screen.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:horizon_finance/features/auth/services/auth_service.dart';
+import 'package:horizon_finance/features/auth/models/auth_state.dart';
+import 'package:horizon_finance/features/users/services/user_service.dart';
 import 'package:horizon_finance/screens/auth/renda_mensal_screen.dart';
 import 'package:email_validator/email_validator.dart';
+import 'package:go_router/go_router.dart';
 
 class LoginCadastroScreen extends ConsumerStatefulWidget {
   const LoginCadastroScreen({super.key});
@@ -27,21 +30,14 @@ class _LoginCadastroScreenState extends ConsumerState<LoginCadastroScreen> {
   }
 
   Future<void> _handleLogin() async {
-    if (_formKey.currentState!.validate()) {
-      try {
-        final user = await ref.read(authServiceProvider.notifier).signIn(
-              email: _emailController.text.trim(),
-              password: _passwordController.text,
-            );
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
 
-        if (user != null && mounted) {
-        // Mostrar mensagem de sucesso
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Login feito com sucesso!'),
-              backgroundColor: Colors.green,
-              duration: Duration(seconds: 2),
-            ),
+    try {
+      await ref.read(authServiceProvider.notifier).signIn(
+            email: _emailController.text.trim(),
+            password: _passwordController.text,
           );
         }
         
@@ -55,47 +51,32 @@ class _LoginCadastroScreenState extends ConsumerState<LoginCadastroScreen> {
               .eq('id', user.id)   
               .single();             
 
-          // 4. Verifica o 'onboarding' que veio do PROFILE
-          final bool isOnboardingComplete = profileData['onboarding'] == true;
-          
-          // 5. Redireciona com base no dado CORRETO
-          if (isOnboardingComplete) {
-            Navigator.of(context).pushReplacement(
-              MaterialPageRoute(builder: (context) => const DashboardScreen()),
-            );
-          } else {
-            Navigator.of(context).pushReplacement(
-              MaterialPageRoute(builder: (context) => const RendaMensalScreen()),
-            );
-          }
+      // A navegação será tratada pelo AuthHandler ou pelo fluxo de onboarding
+      if (!mounted) return;
 
-        } catch (e) {
-          // Erro se não conseguir buscar o 'profile'
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('Erro ao carregar dados do perfil: ${e.toString()}'),
-                backgroundColor: Colors.red,
-              ),
-            );
-          }
-        }
-    
-      } catch (e) {
-        // Erro no login
-        if (mounted) {
-          final errorMessage = ref.read(authServiceProvider).errorMessage;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Login feito com sucesso!'),
+          backgroundColor: Colors.green,
+        ),
+      );
 
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content:
-                  Text(errorMessage ?? 'Erro ao fazer login. Tente novamente.'),
-              backgroundColor: Colors.red,
-              duration: const Duration(seconds: 3),
-            ),
-          );
+      // 1. Dispara a busca pelos dados do perfil.
+      // O método agora é void, ele apenas atualiza o estado do provider.
+      await ref.read(userServiceProvider.notifier).getProfile();
+      // 2. Lê o estado que foi atualizado pelo método acima.
+      final profile = ref.read(userServiceProvider);
+
+      if (mounted) {
+        if (profile != null && profile.onboardingComplete) {
+          context.go('/dashboard');
+        } else {
+          context.go('/renda-mensal');
         }
       }
+    } catch (e) {
+      // O AuthService já atualizou o estado com a mensagem de erro
+      // O listener abaixo irá exibir o SnackBar
     }
   }
 
@@ -198,6 +179,22 @@ class _LoginCadastroScreenState extends ConsumerState<LoginCadastroScreen> {
     final Color primaryColor = Theme.of(context).primaryColor;
     final Color secondaryColor = Theme.of(context).colorScheme.secondary;
 
+    // Observa o estado de autenticação para isLoading e erros
+    final authState = ref.watch(authServiceProvider);
+    final isLoading = authState.isLoading;
+
+    ref.listen<AuthState>(authServiceProvider, (previous, next) {
+      if (next.errorMessage != null && previous?.errorMessage != next.errorMessage) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(next.errorMessage!),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    });
+
     return Scaffold(
       backgroundColor: Colors.white,
       body: Center(
@@ -240,6 +237,7 @@ class _LoginCadastroScreenState extends ConsumerState<LoginCadastroScreen> {
                           'E-mail',
                           Icons.email_outlined,
                           controller: _emailController,
+                          enabled: !isLoading,
                           validator: (value) {
                             if (value == null || value.isEmpty) {
                               return 'Informe seu e-mail';
@@ -253,6 +251,7 @@ class _LoginCadastroScreenState extends ConsumerState<LoginCadastroScreen> {
                           'Senha',
                           Icons.lock_outline,
                           isPassword: true,
+                          enabled: !isLoading,
                           controller: _passwordController,
                           validator: (value) {
                             if (value == null || value.isEmpty) {
@@ -265,7 +264,7 @@ class _LoginCadastroScreenState extends ConsumerState<LoginCadastroScreen> {
                         SizedBox(
                           width: double.infinity,
                           child: ElevatedButton(
-                            onPressed: _handleLogin,
+                            onPressed: isLoading ? null : _handleLogin,
                             style: ElevatedButton.styleFrom(
                               backgroundColor: primaryColor,
                               foregroundColor: Colors.white,
@@ -274,15 +273,22 @@ class _LoginCadastroScreenState extends ConsumerState<LoginCadastroScreen> {
                                 borderRadius: BorderRadius.circular(10),
                               ),
                             ),
-                            child: const Text(
-                              'Entrar',
-                              style: TextStyle(fontSize: 18),
-                            ),
+                            child: isLoading
+                                ? const SizedBox(
+                                    width: 24,
+                                    height: 24,
+                                    child: CircularProgressIndicator(
+                                        color: Colors.white, strokeWidth: 3),
+                                  )
+                                : const Text(
+                                    'Entrar',
+                                    style: TextStyle(fontSize: 18),
+                                  ),
                           ),
                         ),
                         const SizedBox(height: 15),
                         TextButton(
-                          onPressed: _handlePasswordReset,
+                          onPressed: isLoading ? null : _handlePasswordReset,
                           child: Text(
                             'Esqueceu a senha?',
                             style: TextStyle(color: secondaryColor),
@@ -292,12 +298,8 @@ class _LoginCadastroScreenState extends ConsumerState<LoginCadastroScreen> {
                         SizedBox(
                           width: double.infinity,
                           child: OutlinedButton(
-                            onPressed: () {
-                              Navigator.of(context).push(
-                                MaterialPageRoute(
-                                    builder: (context) =>
-                                        const CadastroScreen()),
-                              );
+                            onPressed: isLoading ? null : () {
+                              context.push('/cadastro');
                             },
                             style: OutlinedButton.styleFrom(
                               foregroundColor: primaryColor,
@@ -332,11 +334,13 @@ class _LoginCadastroScreenState extends ConsumerState<LoginCadastroScreen> {
     bool isPassword = false,
     TextEditingController? controller,
     String? Function(String?)? validator,
+    bool enabled = true,
   }) {
     return TextFormField(
       controller: controller,
       obscureText: isPassword,
       validator: validator,
+      enabled: enabled,
       decoration: InputDecoration(
         labelText: label,
         prefixIcon: Icon(icon, color: Theme.of(context).primaryColor),
