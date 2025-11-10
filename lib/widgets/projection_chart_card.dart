@@ -156,17 +156,24 @@ class _ProjectionChartCardState extends ConsumerState<ProjectionChartCard> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
+            Expanded(
+            child:  
             _buildIndicator(
               'Saldo Atual',
               currencyFormat.format(firstBalance),
               Colors.blue,
               Icons.account_balance_wallet,
             ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child:
             _buildIndicator(
               'Em 90 dias',
               currencyFormat.format(lastBalance),
               lastBalance < 0 ? Colors.red : Colors.green,
               lastBalance < 0 ? Icons.trending_down : Icons.trending_up,
+            ),
             ),
           ],
         ),

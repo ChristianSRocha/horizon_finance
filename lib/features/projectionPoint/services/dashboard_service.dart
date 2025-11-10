@@ -4,7 +4,6 @@ import '../models/projection_point.dart';
 class DashboardService {
   final _supabase = Supabase.instance.client;
 
-  /// Busca o saldo atual calculando todas as transações do usuário
   Future<double> getCurrentBalance() async {
     try {
       final userId = _supabase.auth.currentUser?.id;
