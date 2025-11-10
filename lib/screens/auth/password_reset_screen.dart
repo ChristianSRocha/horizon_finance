@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:horizon_finance/features/auth/services/auth_service.dart';
+import 'package:horizon_finance/features/auth/models/auth_state.dart';
 
 class PasswordResetScreen extends ConsumerStatefulWidget {
   const PasswordResetScreen({super.key});
@@ -14,8 +15,6 @@ class PasswordResetScreen extends ConsumerStatefulWidget {
 class _PasswordResetScreenState extends ConsumerState<PasswordResetScreen> {
   final TextEditingController _passwordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
-  bool _isLoading = false;
-
   @override
   void dispose() {
     _passwordController.dispose();
@@ -23,47 +22,41 @@ class _PasswordResetScreenState extends ConsumerState<PasswordResetScreen> {
   }
 
   Future<void> _handlePasswordReset() async {
-    if (_formKey.currentState!.validate()) {
-      setState(() {
-        _isLoading = true;
-      });
-      try {
-        await ref
-            .read(authServiceProvider.notifier)
-            .updateUserPassword(_passwordController.text);
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
+    try {
+      await ref
+          .read(authServiceProvider.notifier)
+          .updateUserPassword(_passwordController.text);
 
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Senha atualizada com sucesso!'),
-              backgroundColor: Colors.green,
-            ),
-          );
-          // Navigate to login screen
-          context.go('/login');
-        }
-      } catch (e) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(ref.read(authServiceProvider).errorMessage ??
-                  'Erro ao atualizar a senha.'),
-              backgroundColor: Colors.red,
-            ),
-          );
-        }
-      } finally {
-        if (mounted) {
-          setState(() {
-            _isLoading = false;
-          });
-        }
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Senha atualizada com sucesso!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+        context.go('/login');
       }
+    } catch (e) {
+      // O erro será tratado pelo ref.listen
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final authState = ref.watch(authServiceProvider);
+    final isLoading = authState.isLoading;
+
+    ref.listen<AuthState>(authServiceProvider, (_, next) {
+      if (next.errorMessage != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(next.errorMessage!), backgroundColor: Colors.red),
+        );
+      }
+    });
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Redefinir Senha'),
@@ -76,6 +69,7 @@ class _PasswordResetScreenState extends ConsumerState<PasswordResetScreen> {
             children: [
               TextFormField(
                 controller: _passwordController,
+                enabled: !isLoading,
                 decoration: const InputDecoration(
                   labelText: 'Nova Senha',
                 ),
@@ -92,9 +86,13 @@ class _PasswordResetScreenState extends ConsumerState<PasswordResetScreen> {
               ),
               const SizedBox(height: 20),
               ElevatedButton(
-                onPressed: _isLoading ? null : _handlePasswordReset,
-                child: _isLoading
-                    ? const CircularProgressIndicator()
+                onPressed: isLoading ? null : _handlePasswordReset,
+                child: isLoading
+                    ? const SizedBox(
+                        width: 24,
+                        height: 24,
+                        child: CircularProgressIndicator(
+                            color: Colors.white, strokeWidth: 3))
                     : const Text('Atualizar Senha'),
               ),
             ],
