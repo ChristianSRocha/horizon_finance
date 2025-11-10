@@ -1,9 +1,10 @@
-import 'dart:developer' as developer;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:horizon_finance/screens/dashboard/dashboard_screen.dart';
 import 'package:horizon_finance/features/transactions/services/transaction_service.dart';
 import 'package:horizon_finance/features/transactions/models/transactions.dart';
+import 'package:horizon_finance/features/auth/services/auth_service.dart';
 
 class DespesasFixasScreen extends ConsumerStatefulWidget {
   const DespesasFixasScreen({super.key});
@@ -150,6 +151,9 @@ class _DespesasFixasScreenState extends ConsumerState<DespesasFixasScreen> {
           // Continue tentando salvar as outras despesas
         }
       }
+      
+      // Marca o onboarding como concluído
+      await ref.read(authServiceProvider.notifier).concluirOnboarding();
 
 
       if (mounted) {

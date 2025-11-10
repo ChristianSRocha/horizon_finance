@@ -39,6 +39,17 @@ class _LoginCadastroScreenState extends ConsumerState<LoginCadastroScreen> {
             email: _emailController.text.trim(),
             password: _passwordController.text,
           );
+        }
+        
+        try {
+          // Pega o cliente Supabase (você precisa ter o provider dele)
+          final supabase = ref.read(supabaseClientProvider); 
+          
+          final profileData = await supabase
+              .from('profiles')       
+              .select('onboarding')  
+              .eq('id', user.id)   
+              .single();             
 
       // A navegação será tratada pelo AuthHandler ou pelo fluxo de onboarding
       if (!mounted) return;
