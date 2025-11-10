@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:horizon_finance/screens/auth/auth_gate.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:horizon_finance/screens/auth/login_cadastro_screen.dart';
 
@@ -40,7 +41,7 @@ class HorizonsFinanceApp extends StatelessWidget {
         scaffoldBackgroundColor: softWhite,
         useMaterial3: true,
       ),
-      home: const LoginCadastroScreen(),
+      home:  const AuthGate(),
     );
   }
 }
