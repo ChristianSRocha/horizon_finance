@@ -1,7 +1,7 @@
-
+import 'dart:developer' as developer;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:horizon_finance/screens/dashboard/dashboard_screen.dart';
+import 'package:go_router/go_router.dart';
 import 'package:horizon_finance/features/transactions/services/transaction_service.dart';
 import 'package:horizon_finance/features/transactions/models/transactions.dart';
 import 'package:horizon_finance/features/auth/services/auth_service.dart';
@@ -146,14 +146,11 @@ class _DespesasFixasScreenState extends ConsumerState<DespesasFixasScreen> {
           savedCount++;
           
         } catch (e) {
-          
-          
+          // Loga o erro para diagnóstico, mas permite que o loop continue
+          developer.log('Falha ao salvar a despesa "${despesa['descricao']}"', error: e);
           // Continue tentando salvar as outras despesas
         }
       }
-      
-      // Marca o onboarding como concluído
-      await ref.read(authServiceProvider.notifier).concluirOnboarding();
 
 
       if (mounted) {
@@ -169,13 +166,11 @@ class _DespesasFixasScreenState extends ConsumerState<DespesasFixasScreen> {
         // Pequeno delay para mostrar o snackbar
         await Future.delayed(const Duration(milliseconds: 500));
 
+        // Marca o onboarding como concluído
+        await ref.read(authServiceProvider.notifier).concluirOnboarding();
 
-
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (context) => const DashboardScreen(),
-          ),
-        );
+        // Navega para o dashboard usando go_router
+        context.go('/dashboard');
       }
     } catch (e) {
 

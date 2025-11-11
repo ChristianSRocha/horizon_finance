@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:horizon_finance/screens/auth/despesas_fixas_screen.dart';
 import'package:horizon_finance/features/transactions/services/transaction_service.dart';
+import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'dart:developer' as developer;
 import 'package:supabase_flutter/supabase_flutter.dart' hide Provider, AuthState;
@@ -92,11 +93,7 @@ class _RendaMensalScreenState extends ConsumerState<RendaMensalScreen> {
       );
 
       if (mounted) {
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (context) => const DespesasFixasScreen(),
-          ),
-        );
+        context.go('/despesas-fixas');
       }
     } catch (e) {
       developer.log(
@@ -139,17 +136,12 @@ class _RendaMensalScreenState extends ConsumerState<RendaMensalScreen> {
       final user = supabase.auth.currentUser;
       final confirmed = user?.emailConfirmedAt != null;
       if (!confirmed) {
-        if (!mounted) return;
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const VerifyEmailScreen()),
-        );
+        if (mounted) context.go('/verify-email');
         return;
       }
     } catch (_) {
       if (mounted) {
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const VerifyEmailScreen()),
-        );
+        context.go('/verify-email');
         return;
       }
     } finally {
