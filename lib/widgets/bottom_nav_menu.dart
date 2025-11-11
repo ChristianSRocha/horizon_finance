@@ -1,8 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:horizon_finance/screens/dashboard/dashboard_screen.dart';
-import 'package:horizon_finance/screens/reports/reports_screen.dart';
-import 'package:horizon_finance/screens/goals/goals_screen.dart';
-import 'package:horizon_finance/screens/profile/profile_screen.dart';
+import 'package:go_router/go_router.dart';
 
 class BottomNavMenu extends StatelessWidget {
   final int currentIndex;
@@ -31,9 +28,7 @@ class BottomNavMenu extends StatelessWidget {
             ),
             onPressed: () {
               if (currentIndex != 0) {
-                Navigator.of(context).pushReplacement(
-                  MaterialPageRoute(builder: (context) => const DashboardScreen()),
-                );
+                context.go('/dashboard');
               }
             },
           ),
@@ -46,9 +41,7 @@ class BottomNavMenu extends StatelessWidget {
             ),
             onPressed: () {
               if (currentIndex != 1) {
-                Navigator.of(context).pushReplacement(
-                  MaterialPageRoute(builder: (context) => const ReportsScreen()),
-                );
+                context.go('/reports');
               }
             },
           ),
@@ -63,9 +56,7 @@ class BottomNavMenu extends StatelessWidget {
             ),
             onPressed: () {
               if (currentIndex != 2) {
-                Navigator.of(context).pushReplacement(
-                  MaterialPageRoute(builder: (context) => const GoalsScreen()),
-                );
+                context.go('/goals');
               }
             },
           ),
@@ -78,9 +69,7 @@ class BottomNavMenu extends StatelessWidget {
             ),
             onPressed: () {
               if (currentIndex != 3) {
-                Navigator.of(context).pushReplacement(
-                  MaterialPageRoute(builder: (context) => const ProfileScreen()),
-                );
+                context.go('/profile');
               }
             },
           ),

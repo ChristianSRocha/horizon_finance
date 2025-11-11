@@ -158,7 +158,7 @@ class AuthService extends Notifier<AuthState> {
 
       await _supabase
           .from('profiles')
-          .update({'onboarding_complete': true}).eq('id', userId);
+          .update({'onboarding': true}).eq('id', userId);
 
       state = state.copyWith(isLoading: false);
     } catch (e) {
