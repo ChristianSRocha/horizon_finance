@@ -96,7 +96,6 @@ class _AuthHandlerState extends State<AuthHandler> {
       body: Center(
         child: CircularProgressIndicator(),
       ),
-      home:  const AuthGate(),
     );
   }
 }
