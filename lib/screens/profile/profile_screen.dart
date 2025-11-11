@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:horizon_finance/features/auth/services/auth_service.dart';
 import 'package:horizon_finance/screens/auth/login_cadastro_screen.dart';
 import 'package:horizon_finance/widgets/bottom_nav_menu.dart';
@@ -67,13 +68,7 @@ class ProfileScreen extends ConsumerWidget {
     onTap: () async {
       try {
         await ref.read(authServiceProvider.notifier).signOut();
-
-        if (context.mounted) {
-          Navigator.of(context).pushAndRemoveUntil(
-            MaterialPageRoute(builder: (_) => const LoginCadastroScreen()),
-            (route) => false,
-          );
-        }
+        if (context.mounted) context.go('/login');
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Erro ao sair: $e')),
