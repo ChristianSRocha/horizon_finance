@@ -110,14 +110,6 @@ class _ReportsScreenState extends State<ReportsScreen> {
         currentIndex: 1,
         primaryColor: primaryBlue,
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          // Implementar ação do FAB
-        },
-        backgroundColor: primaryBlue,
-        child: const Icon(Icons.add, color: Colors.white),
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
     );
   }
 
