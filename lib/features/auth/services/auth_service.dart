@@ -64,7 +64,7 @@ class AuthService extends Notifier<AuthState> {
     }
   }
 
-  Future<User> signIn({
+  Future<void> signIn({
     required String email,
     required String password,
   }) async {
@@ -83,11 +83,6 @@ class AuthService extends Notifier<AuthState> {
           userId: response.user!.id,
           email: response.user!.email,
         );
-
-      return response.user!;
-      
-      } else {
-        throw Exception('Falha ao fazer login');
       }
     } on AuthException catch (e) {
       state = state.copyWith(
@@ -103,7 +98,6 @@ class AuthService extends Notifier<AuthState> {
       rethrow;
     }
   }
-
 
   Future<void> signOut() async {
     await _supabase.auth.signOut();
@@ -128,21 +122,6 @@ class AuthService extends Notifier<AuthState> {
       );
       rethrow;
     }
-
-  Future<void> concluirOnboarding() async {
-
-    final user = _supabase.auth.currentUser;
-
-    if (user == null){
-      throw Exception('Usuário não autenticado');
-    }
-
-    await _supabase
-        .from('profiles')
-        .update({'onboarding': true})
-        .eq('id', user.id);
-
-    return;
   }
 
   Future<void> updateUserPassword(String newPassword) async {
@@ -165,6 +144,26 @@ class AuthService extends Notifier<AuthState> {
         isLoading: false,
         errorMessage: 'Erro ao atualizar a senha: ${e.toString()}',
       );
+      rethrow;
+    }
+  }
+
+  Future<void> concluirOnboarding() async {
+    try {
+      state = state.copyWith(isLoading: true, errorMessage: null);
+      final userId = _supabase.auth.currentUser?.id;
+      if (userId == null) {
+        throw Exception("Usuário não autenticado para concluir o onboarding.");
+      }
+
+      await _supabase
+          .from('profiles')
+          .update({'onboarding_complete': true}).eq('id', userId);
+
+      state = state.copyWith(isLoading: false);
+    } catch (e) {
+      state = state.copyWith(
+          isLoading: false, errorMessage: 'Erro ao finalizar onboarding.');
       rethrow;
     }
   }
