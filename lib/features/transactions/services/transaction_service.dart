@@ -339,7 +339,6 @@ class TransactionService {
     }
   }
 
-  /// Deleta uma transação (soft delete - muda status para INATIVO)
   Future<void> deleteTransaction(String id) async {
     
     try {
