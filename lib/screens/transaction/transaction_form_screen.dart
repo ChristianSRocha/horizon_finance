@@ -466,7 +466,7 @@ class _TransactionFormScreenState extends ConsumerState<TransactionFormScreen> {
           borderSide: BorderSide(color: typeColor, width: 2),
         ),
       ),
-      value: _selectedCategoryId,
+      initialValue: _selectedCategoryId,
       hint: const Text('Selecione uma categoria'),
       items: _currentCategories.map((Category category) {
         return DropdownMenuItem<int>(

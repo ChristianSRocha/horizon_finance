@@ -225,7 +225,6 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
 
   Widget _buildBalanceSummaryCard(Color primaryBlue, Color secondaryColor) {
     return Card(
-      elevation: 5,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
       child: Padding(
         padding: const EdgeInsets.all(20.0),
@@ -286,7 +285,6 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
 
   Widget _buildProjectionChartCard(Color primaryBlue) {
     return Card(
-      elevation: 5,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
       child: Padding(
         padding: const EdgeInsets.all(20.0),
@@ -392,7 +390,6 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
         const SizedBox(height: 10),
         if (_ultimasTransacoes.isEmpty)
           Card(
-            elevation: 1,
             child: Padding(
               padding: const EdgeInsets.all(20.0),
               child: Center(
@@ -413,7 +410,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
         else
           ..._ultimasTransacoes.map((transaction) {
             return _buildRecentTransaction(transaction);
-          }).toList(),
+          }),
       ],
     );
   }

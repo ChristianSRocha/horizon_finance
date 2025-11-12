@@ -126,8 +126,8 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
             const SizedBox(height: 12),
             OutlinedButton(
               onPressed: _loading ? null : _resendVerification,
-              child: const Text('Reenviar e‑mail'),
               style: OutlinedButton.styleFrom(minimumSize: const Size.fromHeight(44)),
+              child: const Text('Reenviar e‑mail'),
             ),
             const SizedBox(height: 12),
             TextButton(

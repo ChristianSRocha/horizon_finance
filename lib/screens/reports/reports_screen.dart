@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
 import '../../widgets/bottom_nav_menu.dart';
 
@@ -12,8 +13,8 @@ class ReportsScreen extends StatefulWidget {
 class _ReportsScreenState extends State<ReportsScreen> {
   DateTime _dataInicio = DateTime.now().subtract(const Duration(days: 30));
   DateTime _dataFim = DateTime.now();
-  
-  List<Transaction> _transacoesFiltradas = [];
+
+  final List<Transaction> _transacoesFiltradas = [];
 
   @override
   void initState() {
@@ -75,7 +76,6 @@ class _ReportsScreenState extends State<ReportsScreen> {
         title: Text('Relatórios e Análises',
             style: TextStyle(color: primaryBlue, fontWeight: FontWeight.bold)),
         backgroundColor: Colors.white,
-        elevation: 0,
         centerTitle: true,
       ),
       body: SingleChildScrollView(
@@ -96,7 +96,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
             _buildCategoryList('Moradia', 1500.00, Colors.redAccent),
             _buildCategoryList('Transporte', 450.00, Colors.orangeAccent),
             _buildCategoryList('Lazer', 300.00, primaryBlue),
-            
+
             const SizedBox(height: 30),
             const Divider(),
             const SizedBox(height: 10),
@@ -186,7 +186,6 @@ class _ReportsScreenState extends State<ReportsScreen> {
 
   Widget _buildChartCard(Color primaryColor) {
     return Card(
-      elevation: 3,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -201,15 +200,12 @@ class _ReportsScreenState extends State<ReportsScreen> {
                   color: Color(0xFF424242)),
             ),
             const SizedBox(height: 15),
-            Container(
+            // Substitui o placeholder por um gráfico de linhas baseado em fl_chart
+            SizedBox(
               height: 200,
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                color: Colors.grey.shade100,
-                borderRadius: BorderRadius.circular(8),
+              child: LineChartWidget(
+                gradientColors: [primaryColor.withOpacity(0.9), Colors.cyan],
               ),
-              child: const Text('GRÁFICO DE PIZZA (FL_CHART)',
-                  style: TextStyle(color: Colors.grey)),
             ),
           ],
         ),
@@ -271,7 +267,6 @@ class _ReportsScreenState extends State<ReportsScreen> {
         const SizedBox(height: 10),
         if (_transacoesFiltradas.isEmpty)
           Card(
-            elevation: 1,
             child: Padding(
               padding: const EdgeInsets.all(20.0),
               child: Center(
@@ -292,7 +287,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
         else
           ..._transacoesFiltradas.map((transaction) {
             return _buildTransactionCard(transaction);
-          }).toList(),
+          }),
       ],
     );
   }
@@ -304,7 +299,8 @@ class _ReportsScreenState extends State<ReportsScreen> {
     final sign = isIncome ? '+' : '-';
 
     // Formata a data da transação
-    final dataFormatada = DateFormat('dd/MM/yyyy').format(transaction.dataCriacao);
+    final dataFormatada =
+        DateFormat('dd/MM/yyyy').format(transaction.dataCriacao);
 
     return ListTile(
       leading: CircleAvatar(
@@ -329,6 +325,272 @@ class _ReportsScreenState extends State<ReportsScreen> {
       onTap: () {
         /// TODO: Abrir detalhes da transação
       },
+    );
+  }
+}
+
+// Widget de gráfico baseado no exemplo fornecido (top-level)
+class LineChartWidget extends StatefulWidget {
+  final List<Color> gradientColors;
+  const LineChartWidget({super.key, required this.gradientColors});
+
+  @override
+  State<LineChartWidget> createState() => _LineChartWidgetState();
+}
+
+class _LineChartWidgetState extends State<LineChartWidget> {
+  bool showAvg = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      children: <Widget>[
+        AspectRatio(
+          aspectRatio: 1.70,
+          child: Padding(
+            padding: const EdgeInsets.only(
+              right: 18,
+              left: 12,
+              top: 24,
+              bottom: 12,
+            ),
+            child: LineChart(
+              showAvg ? avgData() : mainData(),
+            ),
+          ),
+        ),
+        Positioned(
+          left: 8,
+          top: 8,
+          child: SizedBox(
+            width: 60,
+            height: 34,
+            child: TextButton(
+              onPressed: () {
+                setState(() {
+                  showAvg = !showAvg;
+                });
+              },
+              child: Text(
+                'avg',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: showAvg ? Colors.white.withOpacity(0.5) : Colors.white,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget bottomTitleWidgets(double value, TitleMeta meta) {
+    const style = TextStyle(
+      fontWeight: FontWeight.bold,
+      fontSize: 12,
+    );
+    String text = switch (value.toInt()) {
+      2 => 'MAR',
+      5 => 'JUN',
+      8 => 'SEP',
+      _ => '',
+    };
+    return SideTitleWidget(
+      axisSide: meta.axisSide,
+      child: Text(text, style: style),
+    );
+  }
+
+  Widget leftTitleWidgets(double value, TitleMeta meta) {
+    const style = TextStyle(
+      fontWeight: FontWeight.bold,
+      fontSize: 12,
+    );
+    String text = switch (value.toInt()) {
+      1 => '10K',
+      3 => '30k',
+      5 => '50k',
+      _ => '',
+    };
+
+    return Text(text, style: style, textAlign: TextAlign.left);
+  }
+
+  LineChartData mainData() {
+    final colors = widget.gradientColors;
+    return LineChartData(
+      gridData: FlGridData(
+        show: true,
+        drawVerticalLine: true,
+        horizontalInterval: 1,
+        verticalInterval: 1,
+        getDrawingHorizontalLine: (value) {
+          return const FlLine(
+            color: Color(0xff37434d),
+            strokeWidth: 1,
+          );
+        },
+        getDrawingVerticalLine: (value) {
+          return const FlLine(
+            color: Color(0xff37434d),
+            strokeWidth: 1,
+          );
+        },
+      ),
+      titlesData: FlTitlesData(
+        show: true,
+        rightTitles: const AxisTitles(
+          sideTitles: SideTitles(showTitles: false),
+        ),
+        topTitles: const AxisTitles(
+          sideTitles: SideTitles(showTitles: false),
+        ),
+        bottomTitles: AxisTitles(
+          sideTitles: SideTitles(
+            showTitles: true,
+            reservedSize: 30,
+            interval: 1,
+            getTitlesWidget: bottomTitleWidgets,
+          ),
+        ),
+        leftTitles: AxisTitles(
+          sideTitles: SideTitles(
+            showTitles: true,
+            interval: 1,
+            getTitlesWidget: leftTitleWidgets,
+            reservedSize: 42,
+          ),
+        ),
+      ),
+      borderData: FlBorderData(
+        show: true,
+        border: Border.all(color: const Color(0xff37434d)),
+      ),
+      minX: 0,
+      maxX: 11,
+      minY: 0,
+      maxY: 6,
+      lineBarsData: [
+        LineChartBarData(
+          spots: const [
+            FlSpot(0, 3),
+            FlSpot(2.6, 2),
+            FlSpot(4.9, 5),
+            FlSpot(6.8, 3.1),
+            FlSpot(8, 4),
+            FlSpot(9.5, 3),
+            FlSpot(11, 4),
+          ],
+          isCurved: true,
+          gradient: LinearGradient(
+            colors: colors,
+          ),
+          barWidth: 4,
+          isStrokeCapRound: true,
+          dotData: const FlDotData(show: false),
+          belowBarData: BarAreaData(
+            show: true,
+            gradient: LinearGradient(
+              colors: colors.map((c) => c.withOpacity(0.3)).toList(),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  LineChartData avgData() {
+    final colors = widget.gradientColors;
+    return LineChartData(
+      lineTouchData: const LineTouchData(enabled: false),
+      gridData: FlGridData(
+        show: true,
+        drawHorizontalLine: true,
+        verticalInterval: 1,
+        horizontalInterval: 1,
+        getDrawingVerticalLine: (value) {
+          return const FlLine(
+            color: Color(0xff37434d),
+            strokeWidth: 1,
+          );
+        },
+        getDrawingHorizontalLine: (value) {
+          return const FlLine(
+            color: Color(0xff37434d),
+            strokeWidth: 1,
+          );
+        },
+      ),
+      titlesData: FlTitlesData(
+        show: true,
+        bottomTitles: AxisTitles(
+          sideTitles: SideTitles(
+            showTitles: true,
+            reservedSize: 30,
+            getTitlesWidget: bottomTitleWidgets,
+            interval: 1,
+          ),
+        ),
+        leftTitles: AxisTitles(
+          sideTitles: SideTitles(
+            showTitles: true,
+            getTitlesWidget: leftTitleWidgets,
+            reservedSize: 42,
+            interval: 1,
+          ),
+        ),
+        topTitles: const AxisTitles(
+          sideTitles: SideTitles(showTitles: false),
+        ),
+        rightTitles: const AxisTitles(
+          sideTitles: SideTitles(showTitles: false),
+        ),
+      ),
+      borderData: FlBorderData(
+        show: true,
+        border: Border.all(color: const Color(0xff37434d)),
+      ),
+      minX: 0,
+      maxX: 11,
+      minY: 0,
+      maxY: 6,
+      lineBarsData: [
+        LineChartBarData(
+          spots: const [
+            FlSpot(0, 3.44),
+            FlSpot(2.6, 3.44),
+            FlSpot(4.9, 3.44),
+            FlSpot(6.8, 3.44),
+            FlSpot(8, 3.44),
+            FlSpot(9.5, 3.44),
+            FlSpot(11, 3.44),
+          ],
+          isCurved: true,
+          gradient: LinearGradient(
+            colors: [
+              ColorTween(begin: colors[0], end: colors[1]).lerp(0.2)!,
+              ColorTween(begin: colors[0], end: colors[1]).lerp(0.2)!,
+            ],
+          ),
+          barWidth: 4,
+          isStrokeCapRound: true,
+          dotData: const FlDotData(show: false),
+          belowBarData: BarAreaData(
+            show: true,
+            gradient: LinearGradient(
+              colors: [
+                ColorTween(begin: colors[0], end: colors[1])
+                    .lerp(0.2)!
+                    .withOpacity(0.1),
+                ColorTween(begin: colors[0], end: colors[1])
+                    .lerp(0.2)!
+                    .withOpacity(0.1),
+              ],
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

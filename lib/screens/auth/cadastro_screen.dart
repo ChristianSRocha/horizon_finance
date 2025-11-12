@@ -1,9 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:horizon_finance/screens/auth/login_cadastro_screen.dart';
-import 'package:horizon_finance/screens/auth/renda_mensal_screen.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
-import 'verify_email_screen.dart';
 import 'package:go_router/go_router.dart';
 import 'package:horizon_finance/features/auth/services/auth_service.dart';
 

@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:horizon_finance/screens/auth/cadastro_screen.dart';
 import 'package:horizon_finance/screens/auth/login_cadastro_screen.dart';
