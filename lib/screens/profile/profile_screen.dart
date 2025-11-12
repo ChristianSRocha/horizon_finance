@@ -38,7 +38,7 @@ class ProfileScreen extends ConsumerWidget {
                     color: primaryBlue,
                     fontWeight: FontWeight.bold)),
             const SizedBox(height: 4),
-            Text('usuario@email.com', style: const TextStyle(color: Colors.grey)),
+            const Text('usuario@email.com', style: TextStyle(color: Colors.grey)),
             const SizedBox(height: 20),
             Card(
               margin: const EdgeInsets.symmetric(vertical: 8),

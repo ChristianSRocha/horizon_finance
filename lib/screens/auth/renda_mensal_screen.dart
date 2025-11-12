@@ -88,7 +88,7 @@ class _RendaMensalScreenState extends ConsumerState<RendaMensalScreen> {
       final transaction = await transactionService.addTransaction(descricao: 'Renda Mensal', tipo: TransactionType.receita, valor: valor, categoriaId: 1, fixedTransaction: true, diaDoMes: 5, data: null);
 
       developer.log(
-        'Transação salva com sucesso: ${transaction}',
+        'Transação salva com sucesso: $transaction',
         name: 'RendaMensalScreen',
       );
 

@@ -1,11 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:horizon_finance/screens/auth/cadastro_screen.dart';
-import 'package:horizon_finance/screens/dashboard/dashboard_screen.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:horizon_finance/features/auth/services/auth_service.dart';
 import 'package:horizon_finance/features/auth/models/auth_state.dart';
 import 'package:horizon_finance/features/users/services/user_service.dart';
-import 'package:horizon_finance/screens/auth/renda_mensal_screen.dart';
 import 'package:email_validator/email_validator.dart';
 import 'package:go_router/go_router.dart';
 

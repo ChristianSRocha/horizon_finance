@@ -258,7 +258,7 @@ class TransactionService {
         'status': 'ATIVO',
         'data_criacao': now.toIso8601String(),
         'fixed_transaction': fixedTransaction,
-        'dia_do_mes': diaDoMes ?? null,
+        'dia_do_mes': diaDoMes,
       };
       
 
