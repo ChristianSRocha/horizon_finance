@@ -1,197 +1,286 @@
-import 'dart:developer' as developer;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:horizon_finance/features/auth/services/auth_service.dart';
 import 'package:horizon_finance/features/transactions/services/transaction_service.dart';
 import 'package:horizon_finance/features/transactions/models/transactions.dart';
-import 'package:horizon_finance/features/auth/services/auth_service.dart';
+import 'package:intl/intl.dart';
+import 'dart:developer' as developer;
 
 class DespesasFixasScreen extends ConsumerStatefulWidget {
   const DespesasFixasScreen({super.key});
 
   @override
-  ConsumerState<DespesasFixasScreen> createState() => _DespesasFixasScreenState();
+  ConsumerState<DespesasFixasScreen> createState() =>
+      _DespesasFixasScreenState();
 }
 
 class _DespesasFixasScreenState extends ConsumerState<DespesasFixasScreen> {
-  final List<Map<String, dynamic>> _despesas = [
-    {
-      'name': 'Aluguel/Hipoteca',
-      'icon': Icons.home_outlined,
-      'value': 0.0,
-      'controller': TextEditingController(),
-    },
-    {
-      'name': 'Assinaturas',
-      'icon': Icons.subscriptions_outlined,
-      'value': 0.0,
-      'controller': TextEditingController(),
-    },
-    {
-      'name': 'Plano de Saúde',
-      'icon': Icons.local_hospital_outlined,
-      'value': 0.0,
-      'controller': TextEditingController(),
-    },
-    {
-      'name': 'Mensalidades',
-      'icon': Icons.school_outlined,
-      'value': 0.0,
-      'controller': TextEditingController(),
-    },
-    {
-      'name': 'Outras Despesas Fixas',
-      'icon': Icons.more_horiz,
-      'value': 0.0,
-      'controller': TextEditingController(),
-    },
-  ];
+  final TextEditingController _valueController = TextEditingController();
+  final TextEditingController _descriptionController = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
 
   bool _isLoading = false;
+  final Color _color = const Color(0xFFE53935); // Vermelho para Despesa Fixa
+
+  // ESTADOS
+  DateTime _selectedDate = DateTime.now();
+  int _selectedCategoryId = 6;
+  String _selectedCategoryName = 'Aluguel/Moradia';
+
+  // CATEGORIAS MOCK
+  final Map<int, String> _expenseCategories = {
+    6: 'Aluguel/Moradia',
+    7: 'Contas Fixas (Luz, Água)',
+    8: 'Assinaturas',
+    9: 'Transporte',
+    10: 'Educação',
+    11: 'Saúde',
+    12: 'Outros Fixos',
+  };
 
   @override
   void dispose() {
-    // Libera os controllers
-    for (var despesa in _despesas) {
-      (despesa['controller'] as TextEditingController).dispose();
-    }
+    _valueController.dispose();
+    _descriptionController.dispose();
     super.dispose();
   }
 
-  // Converte string formatada para double
+  // --- FUNÇÕES DE VALOR E FORMATAÇÃO ---
+
   double _parseValue(String text) {
     if (text.isEmpty) return 0.0;
-    
-    // Remove R$, espaços e converte , para .
+
     String cleanValue = text
         .replaceAll('R\$', '')
         .replaceAll(' ', '')
-        .replaceAll('.', '') // Remove separador de milhar
-        .replaceAll(',', '.'); // Converte decimal
-    
+        .replaceAll('.', '')
+        .replaceAll(',', '.');
+
     return double.tryParse(cleanValue) ?? 0.0;
   }
 
-  // Formata valor para exibição
+  // CORREÇÃO APLICADA: Função de formatação para remover zeros à esquerda
   String _formatValue(String text) {
-    if (text.isEmpty) return '';
-    
     String cleanText = text.replaceAll(RegExp(r'[^\d]'), '');
-    
-    if (cleanText.isEmpty) return '';
-    
+
+    if (cleanText.isEmpty) return '0,00';
+
     while (cleanText.length < 3) {
       cleanText = '0$cleanText';
     }
 
     String integerPart = cleanText.substring(0, cleanText.length - 2);
     String fractionalPart = cleanText.substring(cleanText.length - 2);
-    
+
+    // CORREÇÃO CHAVE: Remove zeros à esquerda (ex: "001" -> "1")
+    integerPart = BigInt.parse(integerPart).toString();
+
     if (integerPart.length > 3) {
       integerPart = integerPart.replaceAllMapped(
         RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
         (Match m) => '${m[1]}.',
       );
     }
-
     return '$integerPart,$fractionalPart';
   }
 
-  // Salva todas as despesas no backend
-  Future<void> _saveAndContinue() async {
+  // --- FUNÇÕES DE FLUXO ---
 
-    setState(() {
-      _isLoading = true;
-    });
+  Future<void> _saveTransaction() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    final valor = _parseValue(_valueController.text);
+    if (valor <= 0) return;
+
+    setState(() => _isLoading = true);
 
     try {
       final transactionService = ref.read(TransactionServiceProvider);
-      
-      // Lista para armazenar apenas despesas com valor > 0
-      List<Map<String, dynamic>> despesasParaSalvar = [];
 
-      // Processa cada despesa
-      for (var despesa in _despesas) {
-        final controller = despesa['controller'] as TextEditingController;
-        final valor = _parseValue(controller.text);
-        
-
-
-        // Só adiciona se valor > 0
-        if (valor > 0) {
-          despesasParaSalvar.add({
-            'descricao': despesa['name'],
-            'valor': valor,
-          });
-          
-        } 
-      }
-
-
-      // Salva cada despesa no banco
-      int savedCount = 0;
-      for (var despesa in despesasParaSalvar) {
-        try {
-
-          final transaction = await transactionService.addTransaction(
-            descricao: despesa['descricao'],
-            tipo: TransactionType.despesa,
-            valor: despesa['valor'],
-            categoriaId: 1, // Ajuste conforme sua lógica de categorias
-            fixedTransaction: true,
-            diaDoMes: 5, // Dia padrão, ajuste conforme necessário
-            data: null,
-          );
-
-          savedCount++;
-          
-        } catch (e) {
-          // Loga o erro para diagnóstico, mas permite que o loop continue
-          developer.log('Falha ao salvar a despesa "${despesa['descricao']}"', error: e);
-          // Continue tentando salvar as outras despesas
-        }
-      }
-
+      await transactionService.addTransaction(
+        descricao: _descriptionController.text.isEmpty
+            ? 'Despesa Fixa'
+            : _descriptionController.text,
+        tipo: TransactionType.despesa,
+        valor: valor,
+        categoriaId: _selectedCategoryId,
+        fixedTransaction: true,
+        diaDoMes: _selectedDate.day,
+        data: _selectedDate,
+      );
 
       if (mounted) {
-        // Mostra mensagem de sucesso
+        _valueController.clear();
+        _descriptionController.clear();
+        setState(() {
+          _selectedCategoryName = 'Aluguel/Moradia';
+          _selectedCategoryId = 6;
+          _selectedDate = DateTime.now();
+        });
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('$savedCount despesa(s) salva(s) com sucesso!'),
+            content: Text(
+                'Despesa "${_expenseCategories[_selectedCategoryId]}" salva! Adicione outra se necessário.'),
             backgroundColor: Colors.green,
-            duration: const Duration(seconds: 2),
           ),
         );
-
-        // Pequeno delay para mostrar o snackbar
-        await Future.delayed(const Duration(milliseconds: 500));
-
-        // Marca o onboarding como concluído
-        await ref.read(authServiceProvider.notifier).concluirOnboarding();
-
-        // Navega para o dashboard usando go_router
-        context.go('/dashboard');
       }
     } catch (e) {
-
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Erro ao salvar despesas: ${e.toString()}'),
-            backgroundColor: Colors.red,
-            duration: const Duration(seconds: 5),
-          ),
+              content: Text('Erro ao salvar: ${e.toString()}'),
+              backgroundColor: Colors.red),
         );
       }
     } finally {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-        
-
-      }
+      if (mounted) setState(() => _isLoading = false);
     }
+  }
+
+  Future<void> _finishOnboarding() async {
+    setState(() => _isLoading = true);
+    try {
+      // Usa o serviço para marcar que o onboarding foi concluído
+      await ref.read(authServiceProvider.notifier).concluirOnboarding();
+      if (mounted) context.go('/dashboard');
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+              content: Text('Erro ao finalizar Onboarding.'),
+              backgroundColor: Colors.red),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  // --- FUNÇÕES DE DATA E CATEGORIA ---
+
+  String _formatDate(DateTime date) {
+    return DateFormat('dd/MM/yyyy').format(date);
+  }
+
+  Future<void> _selectDate(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: _selectedDate,
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2101),
+    );
+    if (picked != null && picked != _selectedDate) {
+      setState(() => _selectedDate = picked);
+    }
+  }
+
+  // --- WIDGETS DE CONSTRUÇÃO ---
+
+  Widget _buildValueField(Color color) {
+    return TextFormField(
+      controller: _valueController,
+      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+      onChanged: (value) {
+        String formatted = _formatValue(value);
+        if (formatted.isNotEmpty) {
+          _valueController.value = TextEditingValue(
+            text: formatted,
+            selection: TextSelection.collapsed(offset: formatted.length),
+          );
+        }
+      },
+      decoration: InputDecoration(
+        labelText: 'Valor da Despesa',
+        prefixText: 'R\$ ',
+        prefixStyle: TextStyle(color: color, fontSize: 18),
+        border: const OutlineInputBorder(
+            borderRadius: BorderRadius.all(Radius.circular(10))),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: BorderSide(color: color, width: 2),
+        ),
+      ),
+      validator: (value) {
+        if (_parseValue(value ?? '') <= 0) {
+          return 'Insira um valor maior que zero.';
+        }
+        return null;
+      },
+    );
+  }
+
+  Widget _buildDateField(Color color) {
+    return TextFormField(
+      readOnly: true,
+      controller: TextEditingController(text: _formatDate(_selectedDate)),
+      decoration: InputDecoration(
+        labelText: 'Dia de Vencimento',
+        prefixIcon: Icon(Icons.calendar_today, color: color),
+        border: const OutlineInputBorder(
+            borderRadius: BorderRadius.all(Radius.circular(10))),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: BorderSide(color: color, width: 2),
+        ),
+      ),
+      onTap: () => _selectDate(context),
+    );
+  }
+
+  Widget _buildCategoryField(Color color) {
+    return DropdownButtonFormField<int>(
+      decoration: InputDecoration(
+        labelText: 'Categoria',
+        prefixIcon: Icon(Icons.category, color: color),
+        border: const OutlineInputBorder(
+            borderRadius: BorderRadius.all(Radius.circular(10))),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: BorderSide(color: color, width: 2),
+        ),
+      ),
+      value: _selectedCategoryId,
+      items: _expenseCategories.entries.map((entry) {
+        return DropdownMenuItem<int>(
+          value: entry.key,
+          child: Text(entry.value),
+        );
+      }).toList(),
+      onChanged: (int? newValue) {
+        if (newValue != null) {
+          setState(() {
+            _selectedCategoryId = newValue;
+            _selectedCategoryName = _expenseCategories[newValue]!;
+          });
+        }
+      },
+      validator: (value) {
+        if (value == null) {
+          return 'Selecione uma categoria.';
+        }
+        return null;
+      },
+    );
+  }
+
+  Widget _buildDescriptionField(Color color) {
+    return TextFormField(
+      controller: _descriptionController,
+      maxLength: 100,
+      decoration: InputDecoration(
+        labelText: 'Descrição (Ex: Assinatura Netflix)',
+        prefixIcon: Icon(Icons.info_outline, color: color),
+        border: const OutlineInputBorder(
+            borderRadius: BorderRadius.all(Radius.circular(10))),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: BorderSide(color: color, width: 2),
+        ),
+      ),
+    );
   }
 
   @override
@@ -205,154 +294,95 @@ class _DespesasFixasScreenState extends ConsumerState<DespesasFixasScreen> {
         elevation: 0,
         centerTitle: true,
       ),
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: <Widget>[
-          const SizedBox(height: 10),
-          
-          Text(
-            'Quais são suas despesas fixas?',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: primaryBlue.withOpacity(0.9),
-            ),
-          ),
-          const SizedBox(height: 10),
-          const Text(
-            'Insira 0,00 nas despesas que você não possui.',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.grey,
-            ),
-          ),
-          const SizedBox(height: 30),
-
-          Expanded(
-            child: ListView.builder(
-              itemCount: _despesas.length,
-              itemBuilder: (context, index) {
-                final despesa = _despesas[index];
-                return _buildDespesaTile(
-                  name: despesa['name'],
-                  icon: despesa['icon'],
-                  controller: despesa['controller'],
-                  primaryColor: primaryBlue,
-                );
-              },
-            ),
-          ),
-          
-          Padding(
-            padding: const EdgeInsets.only(left: 32, right: 32, bottom: 20, top: 10),
-            child: ElevatedButton(
-              onPressed: _isLoading ? null : _saveAndContinue,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: primaryBlue, 
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 18),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
+      body: Center(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(32.0),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                // TÍTULOS
+                Text(
+                  'Despesas Fixas Recorrentes',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 26,
+                    fontWeight: FontWeight.bold,
+                    color: _color,
+                  ),
                 ),
-                elevation: 5,
-                disabledBackgroundColor: primaryBlue.withOpacity(0.5),
-              ),
-              child: _isLoading
-                  ? const SizedBox(
-                      height: 20,
-                      width: 20,
-                      child: CircularProgressIndicator(
-                        color: Colors.white,
-                        strokeWidth: 2,
-                      ),
-                    )
-                  : const Text(
-                      'Finalizar e Acessar o App',
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                const SizedBox(height: 10),
+                const Text(
+                  'Registre suas despesas fixas (Aluguel, Assinaturas, etc.).',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Colors.grey,
+                  ),
+                ),
+                const SizedBox(height: 40),
+
+                // CAMPOS DE FORMULÁRIO
+                _buildValueField(_color),
+                const SizedBox(height: 20),
+
+                _buildDateField(_color),
+                const SizedBox(height: 20),
+
+                _buildCategoryField(_color),
+                const SizedBox(height: 20),
+
+                _buildDescriptionField(_color),
+                const SizedBox(height: 40),
+
+                // BOTÃO PRINCIPAL: SALVA E LIMPA O FORM
+                ElevatedButton(
+                  onPressed: _isLoading ? null : _saveTransaction,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: _color,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 18),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
                     ),
+                    elevation: 5,
+                    disabledBackgroundColor: _color.withOpacity(0.5),
+                  ),
+                  child: _isLoading
+                      ? const SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(
+                              color: Colors.white, strokeWidth: 2))
+                      : const Text(
+                          'Registrar e Adicionar Outra Despesa',
+                          style: TextStyle(
+                              fontSize: 18, fontWeight: FontWeight.bold),
+                        ),
+                ),
+                const SizedBox(height: 20),
+
+                // BOTÃO SECUNDÁRIO: FINALIZA O ONBOARDING
+                OutlinedButton(
+                  onPressed: _isLoading ? null : _finishOnboarding,
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: primaryBlue,
+                    side: BorderSide(color: primaryBlue.withOpacity(0.5)),
+                    padding: const EdgeInsets.symmetric(vertical: 18),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10)),
+                  ),
+                  child: const Text('Finalizar Onboarding',
+                      style:
+                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                ),
+
+                const SizedBox(height: 20),
+              ],
             ),
           ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildDespesaTile({
-    required String name,
-    required IconData icon,
-    required TextEditingController controller,
-    required Color primaryColor,
-  }) {
-    final TextStyle valueStyle = TextStyle(
-      color: primaryColor,
-      fontWeight: FontWeight.bold,
-      fontSize: 16,
-    );
-    
-    return Card(
-      color: Colors.white,
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      elevation: 1,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: Colors.grey.shade200, width: 1),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-        child: Row(
-          children: [
-            Icon(icon, color: primaryColor),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Text(
-                name,
-                style: const TextStyle(
-                  fontWeight: FontWeight.w500,
-                  color: Colors.black87,
-                ),
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-            const SizedBox(width: 10),
-
-            SizedBox(
-              width: 120, 
-              child: TextFormField(
-                controller: controller,
-                keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                textAlign: TextAlign.right,
-                onChanged: (value) {
-                  // Formata o valor enquanto digita
-                  String formatted = _formatValue(value);
-                  if (formatted.isNotEmpty) {
-                    controller.value = TextEditingValue(
-                      text: formatted,
-                      selection: TextSelection.collapsed(offset: formatted.length),
-                    );
-                  }
-                  
-  
-                },
-                style: valueStyle, 
-                decoration: InputDecoration(
-                  prefixText: 'R\$ ', 
-                  prefixStyle: valueStyle, 
-                  hintText: '0,00',
-                  hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 16),
-                  border: UnderlineInputBorder(
-                    borderSide: BorderSide(color: Colors.grey.shade400)
-                  ),
-                  focusedBorder: UnderlineInputBorder(
-                    borderSide: BorderSide(color: primaryColor, width: 2),
-                  ),
-                  contentPadding: const EdgeInsets.symmetric(vertical: 0, horizontal: 0),
-                  isDense: true, 
-                ),
-              ),
-            ),
-          ],
         ),
       ),
     );
