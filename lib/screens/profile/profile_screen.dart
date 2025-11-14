@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:horizon_finance/features/auth/services/auth_service.dart';
-import 'package:horizon_finance/screens/auth/login_cadastro_screen.dart';
 import 'package:horizon_finance/widgets/bottom_nav_menu.dart';
 
 class ProfileScreen extends ConsumerWidget {
@@ -15,11 +14,10 @@ class ProfileScreen extends ConsumerWidget {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text('Perfil'),
+        title: Text('Perfil',
+            style: TextStyle(color: primaryBlue, fontWeight: FontWeight.bold)),
         backgroundColor: Colors.white,
-        elevation: 0,
         centerTitle: true,
-        foregroundColor: primaryBlue,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
@@ -33,18 +31,22 @@ class ProfileScreen extends ConsumerWidget {
             ),
             const SizedBox(height: 12),
             Text('Nome do Usuário',
-                style: TextStyle(
-                    fontSize: 18,
-                    color: primaryBlue,
-                    fontWeight: FontWeight.bold)),
+                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                      color: primaryBlue,
+                      fontWeight: FontWeight.bold,
+                    )),
             const SizedBox(height: 4),
-            const Text('usuario@email.com', style: TextStyle(color: Colors.grey)),
+            Text('usuario@email.com',
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: Colors.grey,
+                    )),
             const SizedBox(height: 20),
             Card(
               margin: const EdgeInsets.symmetric(vertical: 8),
               child: ListTile(
                 leading: const Icon(Icons.edit),
-                title: const Text('Editar Perfil'),
+                title: Text('Editar Perfil',
+                    style: Theme.of(context).textTheme.bodyLarge),
                 onTap: () {
                   // TODO: Implementar edição de perfil
                 },
@@ -54,29 +56,32 @@ class ProfileScreen extends ConsumerWidget {
               margin: const EdgeInsets.symmetric(vertical: 8),
               child: ListTile(
                 leading: const Icon(Icons.settings),
-                title: const Text('Configurações'),
+                title: Text('Configurações',
+                    style: Theme.of(context).textTheme.bodyLarge),
                 onTap: () {
                   // TODO: Navegar para configurações
                 },
               ),
             ),
             Card(
-  margin: const EdgeInsets.symmetric(vertical: 8),
-  child: ListTile(
-    leading: const Icon(Icons.logout, color: Colors.red),
-    title: const Text('Sair'),
-    onTap: () async {
-      try {
-        await ref.read(authServiceProvider.notifier).signOut();
-        if (context.mounted) context.go('/login');
-      } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erro ao sair: $e')),
-        );
-      }
-    },
-  ),
-), ],
+              margin: const EdgeInsets.symmetric(vertical: 8),
+              child: ListTile(
+                leading: const Icon(Icons.logout, color: Colors.red),
+                title: Text('Sair',
+                    style: Theme.of(context).textTheme.bodyLarge),
+                onTap: () async {
+                  try {
+                    await ref.read(authServiceProvider.notifier).signOut();
+                    if (context.mounted) context.go('/login');
+                  } catch (e) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Erro ao sair: $e')),
+                    );
+                  }
+                },
+              ),
+            ),
+          ],
         ),
       ),
       bottomNavigationBar: BottomNavMenu(

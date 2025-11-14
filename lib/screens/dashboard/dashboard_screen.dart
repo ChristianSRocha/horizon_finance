@@ -1,4 +1,3 @@
-import 'dart:developer' as developer;
 import 'package:flutter/material.dart';
 import 'package:horizon_finance/widgets/bottom_nav_menu.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';

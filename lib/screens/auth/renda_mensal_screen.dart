@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:horizon_finance/screens/auth/despesas_fixas_screen.dart';
 import'package:horizon_finance/features/transactions/services/transaction_service.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'dart:developer' as developer;
 import 'package:supabase_flutter/supabase_flutter.dart' hide Provider, AuthState;
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'verify_email_screen.dart';
 import 'package:horizon_finance/features/transactions/models/transactions.dart';
 
 class RendaMensalScreen extends ConsumerStatefulWidget {
