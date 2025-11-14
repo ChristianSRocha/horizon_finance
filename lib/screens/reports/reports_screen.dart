@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
 import '../../widgets/bottom_nav_menu.dart';
+import '../../features/transactions/models/transactions.dart' as tx_model;
 
 class ReportsScreen extends StatefulWidget {
   const ReportsScreen({super.key});
@@ -11,64 +12,97 @@ class ReportsScreen extends StatefulWidget {
 }
 
 class _ReportsScreenState extends State<ReportsScreen> {
-  DateTime _dataInicio = DateTime.now().subtract(const Duration(days: 30));
-  DateTime _dataFim = DateTime.now();
+  DateTime? _dataInicio;
+  DateTime? _dataFim;
+  bool _showAvg = false;
 
-  final List<Transaction> _transacoesFiltradas = [];
+  // Mock de transações — substitua por dados reais do provider/repository
+  final List<Transaction> _todasTransacoes = [
+    Transaction(DateTime(2025, 1, 1), 100, TransactionType.receita),
+    Transaction(DateTime(2025, 1, 5), 50, TransactionType.despesa),
+    Transaction(DateTime(2025, 1, 10), 200, TransactionType.receita),
+    Transaction(DateTime(2025, 1, 12), 20, TransactionType.despesa),
+    Transaction(DateTime(2025, 1, 15), 300, TransactionType.receita),
+    Transaction(DateTime(2025, 1, 18), 75, TransactionType.despesa),
+    Transaction(DateTime(2025, 1, 22), 150, TransactionType.receita),
+    Transaction(DateTime(2025, 1, 25), 45, TransactionType.despesa),
+  ];
 
-  @override
-  void initState() {
-    super.initState();
-    _carregarTransacoes();
+  List<Transaction> get _transacoesFiltradas {
+    if (_dataInicio == null || _dataFim == null) return _todasTransacoes;
+
+    return _todasTransacoes.where((t) {
+      return t.dataCriacao.isAfter(_dataInicio!.subtract(const Duration(days: 1))) &&
+          t.dataCriacao.isBefore(_dataFim!.add(const Duration(days: 1)));
+    }).toList();
   }
 
-  void _carregarTransacoes() {
-    // TODO: Implementar lógica real de carregamento
-    // Filtrando transações entre _dataInicio e _dataFim
-    setState(() {
-      // _transacoesFiltradas = seuServico.getTransacoesPorPeriodo(_dataInicio, _dataFim);
-    });
+  List<FlSpot> _gerarSpots() {
+    final filtradas = _transacoesFiltradas;
+    if (filtradas.isEmpty) return [const FlSpot(0, 0)];
+
+    final sorted = [...filtradas]..sort((a, b) => a.dataCriacao.compareTo(b.dataCriacao));
+
+    double acumulado = 0;
+    List<FlSpot> spots = [];
+
+    for (int i = 0; i < sorted.length; i++) {
+      final t = sorted[i];
+      acumulado += t.tipo == TransactionType.despesa ? -t.valor : t.valor;
+      spots.add(FlSpot(i.toDouble(), acumulado));
+    }
+
+    return spots;
   }
 
-  Future<void> _selecionarData(BuildContext context, bool isDataInicio) async {
-    final DateTime? picked = await showDatePicker(
+  List<String> _gerarLabelsX() {
+    final filtradas = _transacoesFiltradas;
+    if (filtradas.isEmpty) return [''];
+
+    final sorted = [...filtradas]..sort((a, b) => a.dataCriacao.compareTo(b.dataCriacao));
+    return sorted.map((t) => DateFormat('dd/MM').format(t.dataCriacao)).toList();
+  }
+
+  Future<void> _selecionarPeriodo() async {
+    final DateTimeRange? picked = await showDateRangePicker(
       context: context,
-      initialDate: isDataInicio ? _dataInicio : _dataFim,
       firstDate: DateTime(2020),
       lastDate: DateTime.now(),
+      initialDateRange: _dataInicio != null && _dataFim != null
+          ? DateTimeRange(start: _dataInicio!, end: _dataFim!)
+          : DateTimeRange(start: DateTime.now().subtract(const Duration(days: 30)), end: DateTime.now()),
     );
 
     if (picked != null) {
       setState(() {
-        if (isDataInicio) {
-          _dataInicio = picked;
-          // Garante que data início não seja depois da data fim
-          if (_dataInicio.isAfter(_dataFim)) {
-            _dataFim = _dataInicio;
-          }
-        } else {
-          _dataFim = picked;
-          // Garante que data fim não seja antes da data início
-          if (_dataFim.isBefore(_dataInicio)) {
-            _dataInicio = _dataFim;
-          }
-        }
-        _carregarTransacoes();
+        _dataInicio = picked.start;
+        _dataFim = picked.end;
       });
     }
   }
 
-  String _formatarData(DateTime data) {
+  String _formatarData(DateTime? data) {
+    if (data == null) return 'Selecionar período';
     return DateFormat('dd/MM/yyyy').format(data);
   }
 
   String _formatCurrency(double value) {
-    return value.toStringAsFixed(2).replaceAll('.', ',');
+    return NumberFormat.currency(locale: 'pt_BR', symbol: 'R\$').format(value);
+  }
+
+  double _computeMaxY() {
+    final spots = _gerarSpots();
+    final max = spots.fold<double>(0.0, (prev, s) => s.y.abs() > prev ? s.y.abs() : prev);
+    if (max <= 0) return 1.0;
+    final magnitude = (max / 5).ceilToDouble();
+    return magnitude * 5;
   }
 
   @override
   Widget build(BuildContext context) {
     final Color primaryBlue = Theme.of(context).primaryColor;
+    final spots = _gerarSpots();
+    final labels = _gerarLabelsX();
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -77,517 +111,259 @@ class _ReportsScreenState extends State<ReportsScreen> {
             style: TextStyle(color: primaryBlue, fontWeight: FontWeight.bold)),
         backgroundColor: Colors.white,
         centerTitle: true,
+        elevation: 0,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Filtros de Data
-            _buildDateFilters(primaryBlue),
+            // Seleção de Período
+            _buildDateFilter(primaryBlue),
             const SizedBox(height: 20),
 
-            // Cartão do Gráfico
-            _buildChartCard(primaryBlue),
-            const SizedBox(height: 20),
-
-            // Lista de Categorias de Despesas (Legenda do Gráfico)
-            _buildCategoryList('Alimentação', 850.00, Colors.blueAccent),
-            _buildCategoryList('Moradia', 1500.00, Colors.redAccent),
-            _buildCategoryList('Transporte', 450.00, Colors.orangeAccent),
-            _buildCategoryList('Lazer', 300.00, primaryBlue),
-
-            const SizedBox(height: 30),
-            const Divider(),
-            const SizedBox(height: 10),
-
-            // Lista de Transações
-            _buildTransactionsList(primaryBlue),
-          ],
-        ),
-      ),
-      bottomNavigationBar: BottomNavMenu(
-        currentIndex: 1,
-        primaryColor: primaryBlue,
-      ),
-    );
-  }
-
-  Widget _buildDateFilters(Color primaryColor) {
-    return Row(
-      children: [
-        Expanded(
-          child: _buildDateField(
-            label: 'Data Início',
-            date: _dataInicio,
-            onTap: () => _selecionarData(context, true),
-            primaryColor: primaryColor,
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: _buildDateField(
-            label: 'Data Fim',
-            date: _dataFim,
-            onTap: () => _selecionarData(context, false),
-            primaryColor: primaryColor,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildDateField({
-    required String label,
-    required DateTime date,
-    required VoidCallback onTap,
-    required Color primaryColor,
-  }) {
-    return InkWell(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: Colors.grey.shade100,
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: Colors.grey.shade300),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 12,
-                color: Colors.grey[600],
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  _formatarData(date),
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                    color: primaryColor,
-                  ),
-                ),
-                Icon(Icons.calendar_today, size: 16, color: primaryColor),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildChartCard(Color primaryColor) {
-    return Card(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Distribuição de Despesas',
-              style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF424242)),
-            ),
-            const SizedBox(height: 15),
-            // Substitui o placeholder por um gráfico de linhas baseado em fl_chart
-            SizedBox(
-              height: 200,
-              child: LineChartWidget(
-                gradientColors: [primaryColor.withOpacity(0.9), Colors.cyan],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildCategoryList(String name, double amount, Color color) {
-    return ListTile(
-      leading: Container(
-        width: 12,
-        height: 12,
-        decoration: BoxDecoration(
-          color: color,
-          shape: BoxShape.circle,
-        ),
-      ),
-      title: Text(name),
-      trailing: Text(
-        'R\$ ${amount.toStringAsFixed(2).replaceAll('.', ',')}',
-        style: const TextStyle(
-            fontWeight: FontWeight.bold, color: Color(0xFF424242)),
-      ),
-      onTap: () {},
-    );
-  }
-
-  Widget _buildTransactionsList(Color primaryBlue) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              'Transações no Período',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: primaryBlue.withOpacity(0.9),
-              ),
-            ),
-            if (_transacoesFiltradas.isEmpty)
-              Text(
-                'Nenhuma transação',
-                style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-              )
-            else
-              Text(
-                '${_transacoesFiltradas.length} transações',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Colors.grey[600],
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-          ],
-        ),
-        const SizedBox(height: 10),
-        if (_transacoesFiltradas.isEmpty)
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(20.0),
-              child: Center(
+            // Card do Gráfico
+            Card(
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              elevation: 2,
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
                 child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Icon(Icons.inbox_outlined,
-                        size: 48, color: Colors.grey[400]),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Nenhuma transação no período selecionado',
-                      style: TextStyle(color: Colors.grey[600]),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          'Saldo Acumulado',
+                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF424242)),
+                        ),
+                        TextButton(
+                          onPressed: () => setState(() => _showAvg = !_showAvg),
+                          child: Text(_showAvg ? 'Média' : 'Total', style: TextStyle(color: primaryBlue)),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 15),
+                    SizedBox(
+                      height: 250,
+                      child: LineChart(
+                        _showAvg ? _buildAvgChart(spots, _computeMaxY(), labels) : _buildMainChart(spots, _computeMaxY(), labels, primaryBlue),
+                      ),
                     ),
                   ],
                 ),
               ),
             ),
-          )
-        else
-          ..._transacoesFiltradas.map((transaction) {
-            return _buildTransactionCard(transaction);
-          }),
-      ],
+            const SizedBox(height: 20),
+
+            // Resumo de Categorias
+            _buildSummaryCard('Receitas', _todasTransacoes
+                .where((t) => t.tipo == TransactionType.receita)
+                .fold(0.0, (sum, t) => sum + t.valor), Colors.green, primaryBlue),
+            const SizedBox(height: 10),
+            _buildSummaryCard('Despesas', _todasTransacoes
+                .where((t) => t.tipo == TransactionType.despesa)
+                .fold(0.0, (sum, t) => sum + t.valor), Colors.red, primaryBlue),
+            const SizedBox(height: 20),
+            const Divider(),
+            const SizedBox(height: 10),
+
+            // Lista de Transações
+            Text('Transações do Período',
+                style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold)),
+            const SizedBox(height: 10),
+            _buildTransactionsList(primaryBlue),
+          ],
+        ),
+      ),
+      bottomNavigationBar: BottomNavMenu(currentIndex: 1, primaryColor: primaryBlue),
     );
   }
 
-  Widget _buildTransactionCard(Transaction transaction) {
-    final isIncome = transaction.tipo == TransactionType.receita;
-    final statusColor =
-        isIncome ? const Color(0xFF2E7D32) : const Color(0xFFE53935);
-    final sign = isIncome ? '+' : '-';
+  Widget _buildDateFilter(Color primary) {
+    return OutlinedButton.icon(
+      onPressed: _selecionarPeriodo,
+      icon: const Icon(Icons.date_range),
+      label: Text(
+        _dataInicio != null && _dataFim != null
+            ? '${_formatarData(_dataInicio)} — ${_formatarData(_dataFim)}'
+            : 'Selecionar período',
+        style: TextStyle(color: primary, fontWeight: FontWeight.w600),
+      ),
+      style: OutlinedButton.styleFrom(
+        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
+        side: BorderSide(color: primary),
+      ),
+    );
+  }
 
-    // Formata a data da transação
-    final dataFormatada =
-        DateFormat('dd/MM/yyyy').format(transaction.dataCriacao);
+  Widget _buildSummaryCard(String title, double value, Color color, Color primary) {
+    return Card(
+      child: ListTile(
+        leading: CircleAvatar(backgroundColor: color.withValues(alpha: 0.15), child: Icon(Icons.trending_up, color: color)),
+        title: Text(title, style: const TextStyle(fontWeight: FontWeight.w600)),
+        trailing: Text(_formatCurrency(value), style: TextStyle(fontWeight: FontWeight.bold, color: color)),
+      ),
+    );
+  }
 
-    return ListTile(
-      leading: CircleAvatar(
-        backgroundColor: statusColor.withOpacity(0.1),
-        child: Icon(
-          isIncome ? Icons.trending_up : Icons.trending_down,
-          color: statusColor,
+  Widget _buildTransactionsList(Color primary) {
+    final filtradas = _transacoesFiltradas;
+    if (filtradas.isEmpty) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 24.0),
+          child: Text('Nenhuma transação no período', style: TextStyle(color: Colors.grey.shade600)),
         ),
-      ),
-      title: Text(
-        transaction.descricao,
-        style: const TextStyle(fontWeight: FontWeight.w500),
-      ),
-      subtitle: Text(dataFormatada),
-      trailing: Text(
-        '$sign R\$ ${_formatCurrency(transaction.valor)}',
-        style: TextStyle(
-          color: statusColor,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
-      onTap: () {
-        /// TODO: Abrir detalhes da transação
+      );
+    }
+
+    final sorted = [...filtradas]..sort((a, b) => b.dataCriacao.compareTo(a.dataCriacao));
+    return ListView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: sorted.length,
+      itemBuilder: (context, index) {
+        final t = sorted[index];
+        final isReceita = t.tipo == TransactionType.receita;
+        return Card(
+          margin: const EdgeInsets.symmetric(vertical: 6),
+          child: ListTile(
+            leading: CircleAvatar(
+              backgroundColor: isReceita ? Colors.green.withValues(alpha: 0.12) : Colors.red.withValues(alpha: 0.12),
+              child: Icon(isReceita ? Icons.arrow_upward : Icons.arrow_downward,
+                  color: isReceita ? Colors.green : Colors.red),
+            ),
+            title: Text('Transação', style: const TextStyle(fontWeight: FontWeight.w600)),
+            subtitle: Text(DateFormat('dd/MM/yyyy HH:mm').format(t.dataCriacao)),
+            trailing: Text(_formatCurrency(t.valor),
+                style: TextStyle(color: isReceita ? Colors.green : Colors.red, fontWeight: FontWeight.bold)),
+          ),
+        );
       },
     );
   }
-}
 
-// Widget de gráfico baseado no exemplo fornecido (top-level)
-class LineChartWidget extends StatefulWidget {
-  final List<Color> gradientColors;
-  const LineChartWidget({super.key, required this.gradientColors});
-
-  @override
-  State<LineChartWidget> createState() => _LineChartWidgetState();
-}
-
-class _LineChartWidgetState extends State<LineChartWidget> {
-  bool showAvg = false;
-
-  @override
-  Widget build(BuildContext context) {
-    return Stack(
-      children: <Widget>[
-        AspectRatio(
-          aspectRatio: 1.70,
-          child: Padding(
-            padding: const EdgeInsets.only(
-              right: 18,
-              left: 12,
-              top: 24,
-              bottom: 12,
-            ),
-            child: LineChart(
-              showAvg ? avgData() : mainData(),
-            ),
-          ),
-        ),
-        Positioned(
-          left: 8,
-          top: 8,
-          child: SizedBox(
-            width: 60,
-            height: 34,
-            child: TextButton(
-              onPressed: () {
-                setState(() {
-                  showAvg = !showAvg;
-                });
-              },
-              child: Text(
-                'avg',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: showAvg ? Colors.white.withOpacity(0.5) : Colors.white,
-                ),
-              ),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget bottomTitleWidgets(double value, TitleMeta meta) {
-    const style = TextStyle(
-      fontWeight: FontWeight.bold,
-      fontSize: 12,
-    );
-    String text = switch (value.toInt()) {
-      2 => 'MAR',
-      5 => 'JUN',
-      8 => 'SEP',
-      _ => '',
-    };
-    return SideTitleWidget(
-      axisSide: meta.axisSide,
-      child: Text(text, style: style),
-    );
-  }
-
-  Widget leftTitleWidgets(double value, TitleMeta meta) {
-    const style = TextStyle(
-      fontWeight: FontWeight.bold,
-      fontSize: 12,
-    );
-    String text = switch (value.toInt()) {
-      1 => '10K',
-      3 => '30k',
-      5 => '50k',
-      _ => '',
-    };
-
-    return Text(text, style: style, textAlign: TextAlign.left);
-  }
-
-  LineChartData mainData() {
-    final colors = widget.gradientColors;
+  LineChartData _buildMainChart(List<FlSpot> spots, double maxY, List<String> labels, Color primary) {
     return LineChartData(
-      gridData: FlGridData(
-        show: true,
-        drawVerticalLine: true,
-        horizontalInterval: 1,
-        verticalInterval: 1,
-        getDrawingHorizontalLine: (value) {
-          return const FlLine(
-            color: Color(0xff37434d),
-            strokeWidth: 1,
-          );
-        },
-        getDrawingVerticalLine: (value) {
-          return const FlLine(
-            color: Color(0xff37434d),
-            strokeWidth: 1,
-          );
-        },
+      lineTouchData: LineTouchData(
+        enabled: true,
+        touchTooltipData: LineTouchTooltipData(
+          tooltipBgColor: Colors.black87,
+          getTooltipItems: (touched) => touched
+              .map((t) => LineTooltipItem('R\$ ${t.y.toStringAsFixed(2)}', const TextStyle(color: Colors.white)))
+              .toList(),
+        ),
       ),
+      gridData: FlGridData(show: true, horizontalInterval: maxY / 4),
       titlesData: FlTitlesData(
         show: true,
-        rightTitles: const AxisTitles(
-          sideTitles: SideTitles(showTitles: false),
-        ),
-        topTitles: const AxisTitles(
-          sideTitles: SideTitles(showTitles: false),
-        ),
+        rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+        topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
         bottomTitles: AxisTitles(
           sideTitles: SideTitles(
             showTitles: true,
-            reservedSize: 30,
             interval: 1,
-            getTitlesWidget: bottomTitleWidgets,
+            getTitlesWidget: (value, meta) {
+              final idx = value.toInt();
+              final step = (labels.length > 8) ? (labels.length ~/ 6).clamp(1, labels.length) : 1;
+              return SideTitleWidget(
+                axisSide: meta.axisSide,
+                child: Text(
+                  (idx >= 0 && idx < labels.length && idx % step == 0) ? labels[idx] : '',
+                  style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold),
+                ),
+              );
+            },
           ),
         ),
         leftTitles: AxisTitles(
           sideTitles: SideTitles(
             showTitles: true,
-            interval: 1,
-            getTitlesWidget: leftTitleWidgets,
+            interval: maxY / 4,
+            getTitlesWidget: (value, meta) => Text(value.toInt().toString(),
+                style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold)),
             reservedSize: 42,
           ),
         ),
       ),
-      borderData: FlBorderData(
-        show: true,
-        border: Border.all(color: const Color(0xff37434d)),
-      ),
+      borderData: FlBorderData(show: true, border: Border.all(color: Colors.grey.shade300)),
       minX: 0,
-      maxX: 11,
-      minY: 0,
-      maxY: 6,
+      maxX: (spots.isNotEmpty) ? spots.last.x : 1,
+      minY: -maxY,
+      maxY: maxY,
       lineBarsData: [
         LineChartBarData(
-          spots: const [
-            FlSpot(0, 3),
-            FlSpot(2.6, 2),
-            FlSpot(4.9, 5),
-            FlSpot(6.8, 3.1),
-            FlSpot(8, 4),
-            FlSpot(9.5, 3),
-            FlSpot(11, 4),
-          ],
+          spots: spots,
           isCurved: true,
-          gradient: LinearGradient(
-            colors: colors,
-          ),
-          barWidth: 4,
+          gradient: LinearGradient(colors: [primary.withValues(alpha: 0.9), Colors.cyan]),
+          barWidth: 3,
           isStrokeCapRound: true,
           dotData: const FlDotData(show: false),
           belowBarData: BarAreaData(
             show: true,
-            gradient: LinearGradient(
-              colors: colors.map((c) => c.withOpacity(0.3)).toList(),
-            ),
+            gradient: LinearGradient(colors: [primary.withValues(alpha: 0.2), Colors.cyan.withValues(alpha: 0.2)]),
           ),
         ),
       ],
     );
   }
 
-  LineChartData avgData() {
-    final colors = widget.gradientColors;
+  LineChartData _buildAvgChart(List<FlSpot> spots, double maxY, List<String> labels) {
+    if (spots.isEmpty) return LineChartData();
+
+    final avg = spots.fold(0.0, (sum, s) => sum + s.y) / spots.length;
+    final avgSpots = List.generate(spots.length, (i) => FlSpot(i.toDouble(), avg));
+
     return LineChartData(
       lineTouchData: const LineTouchData(enabled: false),
-      gridData: FlGridData(
-        show: true,
-        drawHorizontalLine: true,
-        verticalInterval: 1,
-        horizontalInterval: 1,
-        getDrawingVerticalLine: (value) {
-          return const FlLine(
-            color: Color(0xff37434d),
-            strokeWidth: 1,
-          );
-        },
-        getDrawingHorizontalLine: (value) {
-          return const FlLine(
-            color: Color(0xff37434d),
-            strokeWidth: 1,
-          );
-        },
-      ),
+      gridData: FlGridData(show: true, horizontalInterval: maxY / 4),
       titlesData: FlTitlesData(
         show: true,
+        rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+        topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
         bottomTitles: AxisTitles(
           sideTitles: SideTitles(
             showTitles: true,
-            reservedSize: 30,
-            getTitlesWidget: bottomTitleWidgets,
             interval: 1,
+            getTitlesWidget: (value, meta) {
+              final idx = value.toInt();
+              final step = (labels.length > 8) ? (labels.length ~/ 6).clamp(1, labels.length) : 1;
+              return SideTitleWidget(
+                axisSide: meta.axisSide,
+                child: Text((idx >= 0 && idx < labels.length && idx % step == 0) ? labels[idx] : '',
+                    style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold)),
+              );
+            },
           ),
         ),
         leftTitles: AxisTitles(
           sideTitles: SideTitles(
             showTitles: true,
-            getTitlesWidget: leftTitleWidgets,
+            interval: maxY / 4,
+            getTitlesWidget: (value, meta) => Text(value.toInt().toString(),
+                style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold)),
             reservedSize: 42,
-            interval: 1,
           ),
         ),
-        topTitles: const AxisTitles(
-          sideTitles: SideTitles(showTitles: false),
-        ),
-        rightTitles: const AxisTitles(
-          sideTitles: SideTitles(showTitles: false),
-        ),
       ),
-      borderData: FlBorderData(
-        show: true,
-        border: Border.all(color: const Color(0xff37434d)),
-      ),
+      borderData: FlBorderData(show: true, border: Border.all(color: Colors.grey.shade300)),
       minX: 0,
-      maxX: 11,
-      minY: 0,
-      maxY: 6,
+      maxX: (spots.isNotEmpty) ? spots.last.x : 1,
+      minY: -maxY,
+      maxY: maxY,
       lineBarsData: [
         LineChartBarData(
-          spots: const [
-            FlSpot(0, 3.44),
-            FlSpot(2.6, 3.44),
-            FlSpot(4.9, 3.44),
-            FlSpot(6.8, 3.44),
-            FlSpot(8, 3.44),
-            FlSpot(9.5, 3.44),
-            FlSpot(11, 3.44),
-          ],
+          spots: avgSpots,
           isCurved: true,
-          gradient: LinearGradient(
-            colors: [
-              ColorTween(begin: colors[0], end: colors[1]).lerp(0.2)!,
-              ColorTween(begin: colors[0], end: colors[1]).lerp(0.2)!,
-            ],
-          ),
-          barWidth: 4,
+          gradient: const LinearGradient(colors: [Colors.orange, Colors.deepOrange]),
+          barWidth: 3,
           isStrokeCapRound: true,
           dotData: const FlDotData(show: false),
           belowBarData: BarAreaData(
             show: true,
-            gradient: LinearGradient(
-              colors: [
-                ColorTween(begin: colors[0], end: colors[1])
-                    .lerp(0.2)!
-                    .withOpacity(0.1),
-                ColorTween(begin: colors[0], end: colors[1])
-                    .lerp(0.2)!
-                    .withOpacity(0.1),
-              ],
-            ),
+            gradient: const LinearGradient(colors: [Color(0x22FF9800), Color(0x22FF5722)]),
           ),
         ),
       ],
@@ -595,19 +371,13 @@ class _LineChartWidgetState extends State<LineChartWidget> {
   }
 }
 
-// Classes de modelo (ajuste conforme seu modelo real)
-enum TransactionType { receita, despesa }
-
+// Modelo local (substitua pelo modelo real quando integrar com provider)
 class Transaction {
-  final String descricao;
+  final DateTime dataCriacao;
   final double valor;
   final TransactionType tipo;
-  final DateTime dataCriacao;
 
-  Transaction({
-    required this.descricao,
-    required this.valor,
-    required this.tipo,
-    required this.dataCriacao,
-  });
+  Transaction(this.dataCriacao, this.valor, this.tipo);
 }
+
+enum TransactionType { despesa, receita }
