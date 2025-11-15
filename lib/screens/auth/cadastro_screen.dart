@@ -16,9 +16,10 @@ class _CadastroScreenState extends ConsumerState<CadastroScreen> {
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  final TextEditingController _confirmPasswordController = TextEditingController();
+  final TextEditingController _confirmPasswordController =
+      TextEditingController();
   final _formKey = GlobalKey<FormState>();
-  
+
   // Removido _isLoading daqui, agora vem do AuthState
 
   @override
@@ -31,15 +32,16 @@ class _CadastroScreenState extends ConsumerState<CadastroScreen> {
   }
 
   // MUDANÇA 3: Conectar ao AuthService do Supabase
+
   Future<void> _handleCadastro() async {
     if (_formKey.currentState!.validate()) {
       try {
         // Chama o AuthService usando Riverpod
         await ref.read(authServiceProvider.notifier).signUp(
-          email: _emailController.text.trim(),
-          password: _passwordController.text,
-          name: _usernameController.text.trim(),
-        );
+              email: _emailController.text.trim(),
+              password: _passwordController.text,
+              name: _usernameController.text.trim(),
+            );
 
         // Sucesso no cadastro: direciona para a tela de verificação de e‑mail
         if (mounted) {
@@ -59,7 +61,8 @@ class _CadastroScreenState extends ConsumerState<CadastroScreen> {
           final errorMessage = ref.read(authServiceProvider).errorMessage;
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(errorMessage ?? 'Erro ao criar conta. Tente novamente.'),
+              content:
+                  Text(errorMessage ?? 'Erro ao criar conta. Tente novamente.'),
               backgroundColor: Colors.red,
               duration: const Duration(seconds: 3),
             ),
@@ -72,127 +75,162 @@ class _CadastroScreenState extends ConsumerState<CadastroScreen> {
   @override
   Widget build(BuildContext context) {
     final Color primaryColor = Theme.of(context).primaryColor;
-    
+
     // MUDANÇA 4: Observa o estado de autenticação
     final authState = ref.watch(authServiceProvider);
     final isLoading = authState.isLoading;
 
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        title: Text('Criar Conta', style: TextStyle(color: primaryColor)),
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: primaryColor), // Desabilita durante loading
-          onPressed: isLoading ? null : () => context.pop(),
-        ),
-      ),
       body: Center(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(32.0),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
-                Text(
-                  'Cadastre-se no Horizons Finance',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: primaryColor,
-                  ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              Text(
+                'Horizons Finance',
+                style: TextStyle(
+                  fontSize: 36,
+                  fontWeight: FontWeight.bold,
+                  color: primaryColor,
                 ),
-                const SizedBox(height: 30),
-
-                _buildTextField(
-                  'Nome de Usuário',
-                  Icons.person_outline,
-                  _usernameController,
-                  (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Por favor, insira um nome de usuário.';
-                    }
-                    if (value.trim().length < 3) {
-                      return 'Nome deve ter no mínimo 3 caracteres.';
-                    }
-                    return null;
-                  },
-                  enabled: !isLoading, // MUDANÇA 5: Desabilita durante loading
+              ),
+              const SizedBox(height: 5),
+              const Text(
+                'Seu futuro financeiro começa aqui',
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Colors.grey,
                 ),
-                const SizedBox(height: 20),
-
-                _buildTextField(
-                  'E-mail',
-                  Icons.email_outlined,
-                  _emailController,
-                  (value) {
-                    if (value == null || value.isEmpty || !value.contains('@')) {
-                      return 'Por favor, insira um e-mail válido.';
-                    }
-                    return null;
-                  },
-                  keyboardType: TextInputType.emailAddress,
-                  enabled: !isLoading,
+              ),
+              const SizedBox(height: 50),
+              Card(
+                elevation: 5,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(15),
                 ),
-                const SizedBox(height: 20),
-
-                _buildTextField(
-                  'Senha',
-                  Icons.lock_outline,
-                  _passwordController,
-                  (value) {
-                    if (value == null || value.length < 6) {
-                      return 'A senha deve ter pelo menos 6 caracteres.';
-                    }
-                    return null;
-                  },
-                  isPassword: true,
-                  enabled: !isLoading,
-                ),
-                const SizedBox(height: 20),
-
-                _buildTextField(
-                  'Confirme a Senha',
-                  Icons.lock_outline,
-                  _confirmPasswordController,
-                  (value) {
-                    if (value != _passwordController.text) {
-                      return 'As senhas não coincidem.';
-                    }
-                    return null;
-                  },
-                  isPassword: true,
-                  enabled: !isLoading,
-                ),
-                const SizedBox(height: 40),
-
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: isLoading ? null : _handleCadastro,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: primaryColor,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 15),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
+                child: Padding(
+                  padding: const EdgeInsets.all(24.0),
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: <Widget>[
+                        _buildTextField(
+                          'Nome de Usuário',
+                          Icons.person_outline,
+                          _usernameController,
+                          (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Por favor, insira um nome de usuário.';
+                            }
+                            if (value.trim().length < 3) {
+                              return 'Nome deve ter no mínimo 3 caracteres.';
+                            }
+                            return null;
+                          },
+                          enabled: !isLoading,
+                        ),
+                        const SizedBox(height: 20),
+                        _buildTextField(
+                          'E-mail',
+                          Icons.email_outlined,
+                          _emailController,
+                          (value) {
+                            if (value == null ||
+                                value.isEmpty ||
+                                !value.contains('@')) {
+                              return 'Por favor, insira um e-mail válido.';
+                            }
+                            return null;
+                          },
+                          keyboardType: TextInputType.emailAddress,
+                          enabled: !isLoading,
+                        ),
+                        const SizedBox(height: 20),
+                        _buildTextField(
+                          'Senha',
+                          Icons.lock_outline,
+                          _passwordController,
+                          (value) {
+                            if (value == null || value.length < 6) {
+                              return 'A senha deve ter pelo menos 6 caracteres.';
+                            }
+                            return null;
+                          },
+                          isPassword: true,
+                          enabled: !isLoading,
+                        ),
+                        const SizedBox(height: 20),
+                        _buildTextField(
+                          'Confirme a Senha',
+                          Icons.lock_outline,
+                          _confirmPasswordController,
+                          (value) {
+                            if (value != _passwordController.text) {
+                              return 'As senhas não coincidem.';
+                            }
+                            return null;
+                          },
+                          isPassword: true,
+                          enabled: !isLoading,
+                        ),
+                        const SizedBox(height: 30),
+                        SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton(
+                            onPressed: isLoading ? null : _handleCadastro,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: primaryColor,
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(vertical: 15),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                            ),
+                            child: isLoading
+                                ? const SizedBox(
+                                    width: 24,
+                                    height: 24,
+                                    child: CircularProgressIndicator(
+                                        color: Colors.white, strokeWidth: 3),
+                                  )
+                                : const Text(
+                                    'Cadastrar',
+                                    style: TextStyle(fontSize: 18),
+                                  ),
+                          ),
+                        ),
+                        const SizedBox(height: 15),
+                        SizedBox(
+                          width: double.infinity,
+                          child: OutlinedButton(
+                            onPressed: isLoading
+                                ? null
+                                : () {
+                                    context.push('/login');
+                                  },
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: primaryColor,
+                              side: BorderSide(color: primaryColor, width: 2),
+                              padding: const EdgeInsets.symmetric(vertical: 15),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                            ),
+                            child: const Text(
+                              'Já tem uma conta? Entrar',
+                              style: TextStyle(fontSize: 16),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                    child: isLoading
-                        ? const SizedBox(
-                            width: 24,
-                            height: 24,
-                            child: CircularProgressIndicator(color: Colors.white, strokeWidth: 3),
-                          )
-                        : const Text('Cadastrar', style: TextStyle(fontSize: 18)),
                   ),
                 ),
-                const SizedBox(height: 20),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
@@ -222,7 +260,8 @@ class _CadastroScreenState extends ConsumerState<CadastroScreen> {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
-          borderSide: BorderSide(color: Theme.of(context).primaryColor, width: 2),
+          borderSide:
+              BorderSide(color: Theme.of(context).primaryColor, width: 2),
         ),
       ),
     );
