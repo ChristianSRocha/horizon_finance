@@ -363,5 +363,44 @@ class TransactionService {
     }
   }
 
+
+/// Busca transações do usuário em um período específico
+Future<List<Transaction>> getTransactionsByPeriod({
+  required DateTime dataInicio,
+  required DateTime dataFim,
+}) async {
+  try {
+    // ETAPA 1: VALIDAÇÃO
+    final userId = _supabase.auth.currentUser?.id;
+    if (userId == null) {
+      throw Exception('Usuário não autenticado');
+    }
+
+    // Ajusta as datas para incluir o dia inteiro
+    final inicio = DateTime(dataInicio.year, dataInicio.month, dataInicio.day, 0, 0, 0);
+    final fim = DateTime(dataFim.year, dataFim.month, dataFim.day, 23, 59, 59);
+
+    // ETAPA 2: CONSTRUÇÃO DA QUERY
+    final response = await _supabase
+        .from(_transactions)
+        .select()
+        .eq('usuario_id', userId)
+        .eq('status', 'ATIVO') // Apenas transações ativas
+        .gte('data_criacao', inicio.toIso8601String())
+        .lte('data_criacao', fim.toIso8601String())
+        .order('data_criacao', ascending: true);
+
+    // ETAPA 3: CONVERSÃO JSON → DART
+    return (response as List)
+        .map((json) => Transaction.fromJson(json))
+        .toList();
+    
+  } on PostgrestException catch (e) {
+    throw Exception('Erro ao buscar transações do período: ${e.message}');
+  } catch (e) {
+    throw Exception('Erro ao buscar transações do período: ${e.toString()}');
+  }
+}
+
   
 }
