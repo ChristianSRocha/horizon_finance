@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:horizon_finance/features/categoryExpense/provider/report_provider.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../widgets/bottom_nav_menu.dart';
 import '../../features/transactions/models/transactions.dart';
 import '../../features/transactions/services/transaction_service.dart';
+import 'package:horizon_finance/widgets/category_expense_chart_card.dart';
 
 class ReportsScreen extends ConsumerStatefulWidget {
   const ReportsScreen({super.key});
@@ -51,6 +53,12 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
         _transacoesExibidas = transactions;
         _isLoading = false;
       });
+
+      final now = DateTime.now();
+
+        await ref.read(categoryChartControllerProvider.notifier)
+                 .load(now.year, now.month);
+
     } catch (e) {
       setState(() {
         _isLoading = false;
@@ -215,6 +223,9 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
                     ),
                     const SizedBox(height: 20),
 
+                    //Gráfico de despesas por categoria
+                    ExpenseChartCard(),
+                    const SizedBox(height: 20),
                     // Resumo de Categorias
                     _buildSummaryCard(
                         'Receitas',
