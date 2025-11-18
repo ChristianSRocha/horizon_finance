@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:horizon_finance/features/auth/services/auth_service.dart';
+import 'package:horizon_finance/features/fixed-transactions/services/fixed_transaction_service.dart';
 import 'package:horizon_finance/features/transactions/services/transaction_service.dart';
 import 'package:horizon_finance/features/transactions/models/transactions.dart';
 import 'package:intl/intl.dart';
@@ -103,33 +104,31 @@ class _DespesasFixasScreenState extends ConsumerState<DespesasFixasScreen> {
     setState(() => _isLoading = true);
 
     try {
-      final transactionService = ref.read(TransactionServiceProvider);
+      // Agora usa o FixedTransactionService para criar TEMPLATE
+      final fixedService = ref.read(fixedTransactionServiceProvider);
       
-      // Descrição: usa a digitada ou o nome da categoria
       final descricao = _descriptionController.text.trim().isEmpty
           ? _expenseCategories[_selectedCategoryId]!
           : _descriptionController.text.trim();
       
       developer.log(
-        'Salvando despesa fixa - Valor: R\$ ${valor.toStringAsFixed(2)}, Dia: $_selectedDay',
+        'Criando template de despesa fixa - Valor: R\$ ${valor.toStringAsFixed(2)}, Dia: $_selectedDay',
         name: 'DespesasFixasScreen',
       );
 
-      await transactionService.addTransaction(
+      // ✅ Cria apenas o TEMPLATE (não a transação)
+      await fixedService.createTemplate(
         descricao: descricao,
         tipo: TransactionType.despesa,
         valor: valor,
+        diaDoMes: _selectedDay,
         categoriaId: _selectedCategoryId,
-        fixedTransaction: true,
-        diaDoMes: _selectedDay, // 
       );
 
       if (mounted) {
-        // Limpa os campos após salvar
         _valueController.clear();
         _descriptionController.clear();
         
-        // Reseta para valores padrão
         setState(() {
           _selectedCategoryName = 'Aluguel/Moradia';
           _selectedCategoryId = 6;
@@ -139,16 +138,16 @@ class _DespesasFixasScreenState extends ConsumerState<DespesasFixasScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              'Despesa "$descricao" salva com sucesso! (Dia $_selectedDay)',
+              'Template "$descricao" criado! Será cobrado todo dia $_selectedDay.',
             ),
             backgroundColor: Colors.green,
             duration: const Duration(seconds: 2),
           ),
         );
       }
-    } on Exception catch (e) {
+    } catch (e) {
       developer.log(
-        'Erro ao salvar despesa fixa: ${e.toString()}',
+        'Erro ao criar template: ${e.toString()}',
         name: 'DespesasFixasScreen',
         error: e,
       );
@@ -159,22 +158,6 @@ class _DespesasFixasScreenState extends ConsumerState<DespesasFixasScreen> {
             content: Text('Erro ao salvar: ${e.toString()}'),
             backgroundColor: Colors.red,
             duration: const Duration(seconds: 3),
-          ),
-        );
-      }
-    } catch (e) {
-      developer.log(
-        'Erro inesperado: ${e.toString()}',
-        name: 'DespesasFixasScreen',
-        error: e,
-      );
-      
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Erro inesperado ao salvar. Tente novamente.'),
-            backgroundColor: Colors.red,
-            duration: Duration(seconds: 3),
           ),
         );
       }

@@ -21,7 +21,8 @@ create table if not exists transactions(
 
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
--- 2. Altera sua tabela para que a coluna 'id' 
--- gere um UUID v4 automaticamente se nenhum for fornecido
 ALTER TABLE transactions
 ALTER COLUMN id SET DEFAULT uuid_generate_v4();
+
+ALTER TABLE public.transactions
+ADD COLUMN template_id UUID REFERENCES public.fixed_transaction_templates(id);

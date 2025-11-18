@@ -35,6 +35,8 @@ mixin _$Transaction {
   int? get categoriaId => throw _privateConstructorUsedError;
   @JsonKey(name: 'fixed_transaction')
   bool get fixedTransaction => throw _privateConstructorUsedError;
+  @JsonKey(name: 'template_id')
+  String? get templateId => throw _privateConstructorUsedError;
   TransactionStatus get status => throw _privateConstructorUsedError;
   @JsonKey(name: 'data_criacao')
   DateTime get dataCriacao => throw _privateConstructorUsedError;
@@ -65,6 +67,7 @@ abstract class $TransactionCopyWith<$Res> {
       @JsonKey(name: 'data') DateTime? data,
       @JsonKey(name: 'categoria_id') int? categoriaId,
       @JsonKey(name: 'fixed_transaction') bool fixedTransaction,
+      @JsonKey(name: 'template_id') String? templateId,
       TransactionStatus status,
       @JsonKey(name: 'data_criacao') DateTime dataCriacao});
 }
@@ -93,6 +96,7 @@ class _$TransactionCopyWithImpl<$Res, $Val extends Transaction>
     Object? data = freezed,
     Object? categoriaId = freezed,
     Object? fixedTransaction = null,
+    Object? templateId = freezed,
     Object? status = null,
     Object? dataCriacao = null,
   }) {
@@ -133,6 +137,10 @@ class _$TransactionCopyWithImpl<$Res, $Val extends Transaction>
           ? _value.fixedTransaction
           : fixedTransaction // ignore: cast_nullable_to_non_nullable
               as bool,
+      templateId: freezed == templateId
+          ? _value.templateId
+          : templateId // ignore: cast_nullable_to_non_nullable
+              as String?,
       status: null == status
           ? _value.status
           : status // ignore: cast_nullable_to_non_nullable
@@ -163,6 +171,7 @@ abstract class _$$TransactionImplCopyWith<$Res>
       @JsonKey(name: 'data') DateTime? data,
       @JsonKey(name: 'categoria_id') int? categoriaId,
       @JsonKey(name: 'fixed_transaction') bool fixedTransaction,
+      @JsonKey(name: 'template_id') String? templateId,
       TransactionStatus status,
       @JsonKey(name: 'data_criacao') DateTime dataCriacao});
 }
@@ -189,6 +198,7 @@ class __$$TransactionImplCopyWithImpl<$Res>
     Object? data = freezed,
     Object? categoriaId = freezed,
     Object? fixedTransaction = null,
+    Object? templateId = freezed,
     Object? status = null,
     Object? dataCriacao = null,
   }) {
@@ -229,6 +239,10 @@ class __$$TransactionImplCopyWithImpl<$Res>
           ? _value.fixedTransaction
           : fixedTransaction // ignore: cast_nullable_to_non_nullable
               as bool,
+      templateId: freezed == templateId
+          ? _value.templateId
+          : templateId // ignore: cast_nullable_to_non_nullable
+              as String?,
       status: null == status
           ? _value.status
           : status // ignore: cast_nullable_to_non_nullable
@@ -254,6 +268,7 @@ class _$TransactionImpl implements _Transaction {
       @JsonKey(name: 'data') this.data,
       @JsonKey(name: 'categoria_id') this.categoriaId,
       @JsonKey(name: 'fixed_transaction') this.fixedTransaction = false,
+      @JsonKey(name: 'template_id') this.templateId,
       required this.status,
       @JsonKey(name: 'data_criacao') required this.dataCriacao});
 
@@ -285,6 +300,9 @@ class _$TransactionImpl implements _Transaction {
   @JsonKey(name: 'fixed_transaction')
   final bool fixedTransaction;
   @override
+  @JsonKey(name: 'template_id')
+  final String? templateId;
+  @override
   final TransactionStatus status;
   @override
   @JsonKey(name: 'data_criacao')
@@ -292,7 +310,7 @@ class _$TransactionImpl implements _Transaction {
 
   @override
   String toString() {
-    return 'Transaction(id: $id, usuarioId: $usuarioId, tipo: $tipo, descricao: $descricao, valor: $valor, diaDoMes: $diaDoMes, data: $data, categoriaId: $categoriaId, fixedTransaction: $fixedTransaction, status: $status, dataCriacao: $dataCriacao)';
+    return 'Transaction(id: $id, usuarioId: $usuarioId, tipo: $tipo, descricao: $descricao, valor: $valor, diaDoMes: $diaDoMes, data: $data, categoriaId: $categoriaId, fixedTransaction: $fixedTransaction, templateId: $templateId, status: $status, dataCriacao: $dataCriacao)';
   }
 
   @override
@@ -314,6 +332,8 @@ class _$TransactionImpl implements _Transaction {
                 other.categoriaId == categoriaId) &&
             (identical(other.fixedTransaction, fixedTransaction) ||
                 other.fixedTransaction == fixedTransaction) &&
+            (identical(other.templateId, templateId) ||
+                other.templateId == templateId) &&
             (identical(other.status, status) || other.status == status) &&
             (identical(other.dataCriacao, dataCriacao) ||
                 other.dataCriacao == dataCriacao));
@@ -332,6 +352,7 @@ class _$TransactionImpl implements _Transaction {
       data,
       categoriaId,
       fixedTransaction,
+      templateId,
       status,
       dataCriacao);
 
@@ -362,6 +383,7 @@ abstract class _Transaction implements Transaction {
           @JsonKey(name: 'data') final DateTime? data,
           @JsonKey(name: 'categoria_id') final int? categoriaId,
           @JsonKey(name: 'fixed_transaction') final bool fixedTransaction,
+          @JsonKey(name: 'template_id') final String? templateId,
           required final TransactionStatus status,
           @JsonKey(name: 'data_criacao') required final DateTime dataCriacao}) =
       _$TransactionImpl;
@@ -393,6 +415,9 @@ abstract class _Transaction implements Transaction {
   @override
   @JsonKey(name: 'fixed_transaction')
   bool get fixedTransaction;
+  @override
+  @JsonKey(name: 'template_id')
+  String? get templateId;
   @override
   TransactionStatus get status;
   @override
