@@ -32,14 +32,14 @@ class Transaction with _$Transaction {
     @JsonKey(name: 'categoria_id') int? categoriaId, 
     @Default(false)
     @JsonKey(name: 'fixed_transaction') bool fixedTransaction,
-    
+    @JsonKey(name: 'template_id') String? templateId,
     required TransactionStatus status,
     
     @JsonKey(name: 'data_criacao') required DateTime dataCriacao,
 
   }) = _Transaction;
 
-  // 7. Adicione o factory 'fromJson' para desserialização
+  // 7 factory 'fromJson' para desserialização
   factory Transaction.fromJson(Map<String, dynamic> json) =>
       _$TransactionFromJson(json);
 }

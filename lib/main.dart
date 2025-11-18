@@ -1,9 +1,11 @@
 import 'dart:async';
 import 'dart:developer';
+import 'dart:developer' as developer;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:horizon_finance/app_router.dart';
+import 'package:horizon_finance/features/fixed-transactions/services/fixed_transaction_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 final navigatorKey = GlobalKey<NavigatorState>();
@@ -16,6 +18,15 @@ void main() async {
     anonKey:
         'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF0bmVxZXhncnZrZmNxdGd5cHlsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA4NzgzNTIsImV4cCI6MjA3NjQ1NDM1Mn0.WwsUCPjKoyRuKeweYSIXoWvjlxwEvSuR3hBQEpdw7k4',
   );
+
+  // Processa templates mensais
+  final container = ProviderContainer();
+  try {
+    final service = container.read(fixedTransactionServiceProvider);
+    await service.processMonthlyTemplates();
+  } catch (e) {
+    developer.log('Erro ao processar templates: $e');
+  }
 
   runApp(
     const ProviderScope(
