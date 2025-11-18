@@ -24,7 +24,7 @@ class _DespesasFixasScreenState extends ConsumerState<DespesasFixasScreen> {
   final Color _color = const Color(0xFFE53935); // Vermelho para Despesa Fixa
 
   // ESTADOS
-  DateTime _selectedDate = DateTime.now();
+  int _selectedDay = DateTime.now().day; // Armazena apenas o DIA do mês
   int _selectedCategoryId = 6;
   String _selectedCategoryName = 'Aluguel/Moradia';
 
@@ -60,7 +60,6 @@ class _DespesasFixasScreenState extends ConsumerState<DespesasFixasScreen> {
     return double.tryParse(cleanValue) ?? 0.0;
   }
 
-  // CORREÇÃO APLICADA: Função de formatação para remover zeros à esquerda
   String _formatValue(String text) {
     String cleanText = text.replaceAll(RegExp(r'[^\d]'), '');
 
@@ -73,7 +72,7 @@ class _DespesasFixasScreenState extends ConsumerState<DespesasFixasScreen> {
     String integerPart = cleanText.substring(0, cleanText.length - 2);
     String fractionalPart = cleanText.substring(cleanText.length - 2);
 
-    // CORREÇÃO CHAVE: Remove zeros à esquerda (ex: "001" -> "1")
+    // Remove zeros à esquerda (ex: "001" -> "1")
     integerPart = BigInt.parse(integerPart).toString();
 
     if (integerPart.length > 3) {
@@ -91,48 +90,92 @@ class _DespesasFixasScreenState extends ConsumerState<DespesasFixasScreen> {
     if (!_formKey.currentState!.validate()) return;
 
     final valor = _parseValue(_valueController.text);
-    if (valor <= 0) return;
+    if (valor <= 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Insira um valor válido maior que zero.'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
 
     setState(() => _isLoading = true);
 
     try {
       final transactionService = ref.read(TransactionServiceProvider);
+      
+      // Descrição: usa a digitada ou o nome da categoria
+      final descricao = _descriptionController.text.trim().isEmpty
+          ? _expenseCategories[_selectedCategoryId]!
+          : _descriptionController.text.trim();
+      
+      developer.log(
+        'Salvando despesa fixa - Valor: R\$ ${valor.toStringAsFixed(2)}, Dia: $_selectedDay',
+        name: 'DespesasFixasScreen',
+      );
 
       await transactionService.addTransaction(
-        descricao: _descriptionController.text.isEmpty
-            ? 'Despesa Fixa'
-            : _descriptionController.text,
+        descricao: descricao,
         tipo: TransactionType.despesa,
         valor: valor,
         categoriaId: _selectedCategoryId,
         fixedTransaction: true,
-        diaDoMes: _selectedDate.day,
-        data: _selectedDate,
+        diaDoMes: _selectedDay, // 
       );
 
       if (mounted) {
+        // Limpa os campos após salvar
         _valueController.clear();
         _descriptionController.clear();
+        
+        // Reseta para valores padrão
         setState(() {
           _selectedCategoryName = 'Aluguel/Moradia';
           _selectedCategoryId = 6;
-          _selectedDate = DateTime.now();
+          _selectedDay = DateTime.now().day;
         });
 
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-                'Despesa "${_expenseCategories[_selectedCategoryId]}" salva! Adicione outra se necessário.'),
+              'Despesa "$descricao" salva com sucesso! (Dia $_selectedDay)',
+            ),
             backgroundColor: Colors.green,
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      }
+    } on Exception catch (e) {
+      developer.log(
+        'Erro ao salvar despesa fixa: ${e.toString()}',
+        name: 'DespesasFixasScreen',
+        error: e,
+      );
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erro ao salvar: ${e.toString()}'),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 3),
           ),
         );
       }
     } catch (e) {
+      developer.log(
+        'Erro inesperado: ${e.toString()}',
+        name: 'DespesasFixasScreen',
+        error: e,
+      );
+      
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-              content: Text('Erro ao salvar: ${e.toString()}'),
-              backgroundColor: Colors.red),
+          const SnackBar(
+            content: Text('Erro inesperado ao salvar. Tente novamente.'),
+            backgroundColor: Colors.red,
+            duration: Duration(seconds: 3),
+          ),
         );
       }
     } finally {
@@ -142,16 +185,60 @@ class _DespesasFixasScreenState extends ConsumerState<DespesasFixasScreen> {
 
   Future<void> _finishOnboarding() async {
     setState(() => _isLoading = true);
+    
     try {
-      // Usa o serviço para marcar que o onboarding foi concluído
+      developer.log(
+        'Finalizando onboarding...',
+        name: 'DespesasFixasScreen',
+      );
+      
       await ref.read(authServiceProvider.notifier).concluirOnboarding();
-      if (mounted) context.go('/dashboard');
-    } catch (e) {
+      
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-              content: Text('Erro ao finalizar Onboarding.'),
-              backgroundColor: Colors.red),
+            content: Text('Onboarding concluído com sucesso!'),
+            backgroundColor: Colors.green,
+            duration: Duration(seconds: 1),
+          ),
+        );
+        
+        await Future.delayed(const Duration(milliseconds: 500));
+        
+        if (mounted) {
+          context.go('/dashboard');
+        }
+      }
+    } on Exception catch (e) {
+      developer.log(
+        'Erro ao finalizar onboarding: ${e.toString()}',
+        name: 'DespesasFixasScreen',
+        error: e,
+      );
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erro ao finalizar: ${e.toString()}'),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    } catch (e) {
+      developer.log(
+        'Erro inesperado ao finalizar: ${e.toString()}',
+        name: 'DespesasFixasScreen',
+        error: e,
+      );
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Erro ao finalizar Onboarding. Tente novamente.'),
+            backgroundColor: Colors.red,
+            duration: Duration(seconds: 3),
+          ),
         );
       }
     } finally {
@@ -159,21 +246,38 @@ class _DespesasFixasScreenState extends ConsumerState<DespesasFixasScreen> {
     }
   }
 
-  // --- FUNÇÕES DE DATA E CATEGORIA ---
+  // --- FUNÇÕES DE SELEÇÃO DE DIA ---
 
-  String _formatDate(DateTime date) {
-    return DateFormat('dd/MM/yyyy').format(date);
-  }
-
-  Future<void> _selectDate(BuildContext context) async {
-    final DateTime? picked = await showDatePicker(
+  Future<void> _selectDay(BuildContext context) async {
+    // Mostra um diálogo simples para escolher o dia (1-31)
+    final int? picked = await showDialog<int>(
       context: context,
-      initialDate: _selectedDate,
-      firstDate: DateTime(2000),
-      lastDate: DateTime(2101),
+      builder: (BuildContext context) {
+        return SimpleDialog(
+          title: const Text('Selecione o dia do mês'),
+          children: List.generate(31, (index) {
+            final day = index + 1;
+            return SimpleDialogOption(
+              onPressed: () => Navigator.pop(context, day),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8.0),
+                child: Text(
+                  'Dia $day',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: day == _selectedDay ? FontWeight.bold : FontWeight.normal,
+                    color: day == _selectedDay ? _color : Colors.black87,
+                  ),
+                ),
+              ),
+            );
+          }),
+        );
+      },
     );
-    if (picked != null && picked != _selectedDate) {
-      setState(() => _selectedDate = picked);
+    
+    if (picked != null) {
+      setState(() => _selectedDay = picked);
     }
   }
 
@@ -204,7 +308,8 @@ class _DespesasFixasScreenState extends ConsumerState<DespesasFixasScreen> {
         ),
       ),
       validator: (value) {
-        if (_parseValue(value ?? '') <= 0) {
+        final parsedValue = _parseValue(value ?? '');
+        if (parsedValue <= 0) {
           return 'Insira um valor maior que zero.';
         }
         return null;
@@ -212,10 +317,10 @@ class _DespesasFixasScreenState extends ConsumerState<DespesasFixasScreen> {
     );
   }
 
-  Widget _buildDateField(Color color) {
+  Widget _buildDayField(Color color) {
     return TextFormField(
       readOnly: true,
-      controller: TextEditingController(text: _formatDate(_selectedDate)),
+      controller: TextEditingController(text: 'Dia $_selectedDay de cada mês'),
       decoration: InputDecoration(
         labelText: 'Dia de Vencimento',
         prefixIcon: Icon(Icons.calendar_today, color: color),
@@ -226,7 +331,7 @@ class _DespesasFixasScreenState extends ConsumerState<DespesasFixasScreen> {
           borderSide: BorderSide(color: color, width: 2),
         ),
       ),
-      onTap: () => _selectDate(context),
+      onTap: () => _selectDay(context),
     );
   }
 
@@ -271,7 +376,8 @@ class _DespesasFixasScreenState extends ConsumerState<DespesasFixasScreen> {
       controller: _descriptionController,
       maxLength: 100,
       decoration: InputDecoration(
-        labelText: 'Descrição (Ex: Assinatura Netflix)',
+        labelText: 'Descrição (Opcional)',
+        hintText: 'Ex: Assinatura Netflix',
         prefixIcon: Icon(Icons.info_outline, color: color),
         border: const OutlineInputBorder(
             borderRadius: BorderRadius.all(Radius.circular(10))),
@@ -328,7 +434,7 @@ class _DespesasFixasScreenState extends ConsumerState<DespesasFixasScreen> {
                 _buildValueField(_color),
                 const SizedBox(height: 20),
 
-                _buildDateField(_color),
+                _buildDayField(_color),
                 const SizedBox(height: 20),
 
                 _buildCategoryField(_color),

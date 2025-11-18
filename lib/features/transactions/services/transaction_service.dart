@@ -247,31 +247,40 @@ class TransactionService {
        //  ETAPA 2: CONSTRUÇÃO DOS DADOS
       final now = DateTime.now();
       final tipoString = tipo == TransactionType.receita ? 'RECEITA' : 'DESPESA';
+      final isFixed = fixedTransaction ?? false;
 
-      final dataToInsert = {
+      final Map<String, dynamic> dataToInsert = {
         'descricao': descricao,
         'usuario_id': userId,
         'tipo': tipoString,
         'valor': valor,
-        'data': data?.toIso8601String(),
         'categoria_id': categoriaId,
         'status': 'ATIVO',
         'data_criacao': now.toIso8601String(),
-        'fixed_transaction': fixedTransaction,
-        'dia_do_mes': diaDoMes,
+        'fixed_transaction': isFixed,
       };
       
 
       developer.log(
-      '''- Descrição: ${dataToInsert['descricao']},
-      - Tipo: ${dataToInsert['tipo']},
-      - Valor: ${dataToInsert['valor']},
-      - Usuario ID: ${dataToInsert['usuario_id']},
-      - Categoria ID: ${dataToInsert['categoria_id']},
-      - Status: ${dataToInsert['status']},
-      - Data Criação: ${dataToInsert['data_criacao']}''', // <--- Aspas triplas aqui
-      name: 'TransactionService',
-    );
+        '''- Descrição: ${dataToInsert['descricao']},
+        - Tipo: ${dataToInsert['tipo']},
+        - Valor: ${dataToInsert['valor']},
+        - Usuario ID: ${dataToInsert['usuario_id']},
+        - Categoria ID: ${dataToInsert['categoria_id']},
+        - Status: ${dataToInsert['status']},
+        - Data Criação: ${dataToInsert['data_criacao']}''', 
+        name: 'TransactionService',
+      );
+
+      if (isFixed) {
+        // Transação fixa: DEVE ter dia_do_mes e NÃO deve ter data
+        dataToInsert['dia_do_mes'] = diaDoMes ?? data?.day ?? now.day;
+        // Não adiciona 'data' para transações fixas
+      } else {
+        // Transação normal: DEVE ter data e NÃO deve ter dia_do_mes
+        dataToInsert['data'] = (data ?? now).toIso8601String();
+        // Não adiciona 'dia_do_mes' para transações normais
+      }
 
       //  ETAPA 3: CONSTRUÇÃO DA QUERY
       final response = await _supabase
@@ -279,28 +288,28 @@ class TransactionService {
           .insert(dataToInsert)
           .select()
           .single();
-      
+    
       //  ETAPA 4: CONVERSÃO JSON → DART
       return Transaction.fromJson(response);
       
     } on PostgrestException catch (e) {
-      // Erro específico do Supabase
+ 
       throw Exception('Erro ao buscar: ${e.message}');
     } catch (e) {
-      // Erro genérico
+ 
       throw Exception('Erro ao buscar: ${e.toString()}');
     }
   }
 
 
   Future<Transaction> updateTransaction({
-    required String id,
-    required String descricao,
-    required TransactionType tipo,
-    required double valor,
-    required DateTime data,
-    required int categoriaId,
-    required bool fixedTransaction,
+      required String id,
+      required String descricao,
+      required TransactionType tipo,
+      required double valor,
+      required DateTime data,
+      required int categoriaId,
+      required bool fixedTransaction,
   }) async {
     
     try {
@@ -318,18 +327,18 @@ class TransactionService {
         'data': data.toIso8601String(),
         'categoria_id': categoriaId,
         'fixed_transaction': fixedTransaction,
-      };
+    };
 
 
-      final response = await _supabase
-          .from(_transactions)
-          .update(dataToUpdate)
-          .eq('id', id)
-          .eq('usuario_id', userId) // Segurança: só atualiza se for do usuário
-          .select()
-          .single();
+    final response = await _supabase
+        .from(_transactions)
+        .update(dataToUpdate)
+        .eq('id', id)
+        .eq('usuario_id', userId) // Segurança: só atualiza se for do usuário
+        .select()
+        .single();
 
-      return Transaction.fromJson(response);
+    return Transaction.fromJson(response);
       
     } on PostgrestException catch (e) {
       throw Exception('Erro ao atualizar transação: ${e.message}');
