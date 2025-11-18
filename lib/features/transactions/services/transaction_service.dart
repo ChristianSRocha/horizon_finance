@@ -56,6 +56,7 @@ class TransactionService {
           .from(_transactions)
           .select()
           .eq('usuario_id', userId)
+          .eq('status', 'ATIVO')
           .gte('data_criacao', primeiroDia.toIso8601String())
           .lte('data_criacao', ultimoDia.toIso8601String())
           .order('data_criacao', ascending: false);
@@ -303,15 +304,15 @@ class TransactionService {
 
 
   Future<Transaction> updateTransaction({
-      required String id,
-      required String descricao,
-      required TransactionType tipo,
-      required double valor,
-      required DateTime data,
-      required int categoriaId,
-      required bool fixedTransaction,
+    required String id,
+    required String descricao,
+    required TransactionType tipo,
+    required double valor,
+    int? categoriaId, // Alterado para anulável
+    required bool fixedTransaction,
+    DateTime? data, // Alterado para anulável
+    int? diaDoMes, // Adicionado
   }) async {
-    
     try {
       final userId = _supabase.auth.currentUser?.id;
       if (userId == null) {
@@ -319,30 +320,35 @@ class TransactionService {
       }
 
       final tipoString = tipo == TransactionType.receita ? 'RECEITA' : 'DESPESA';
-      
-      final dataToUpdate = {
+
+      final Map<String, dynamic> dataToUpdate = {
         'descricao': descricao,
         'tipo': tipoString,
         'valor': valor,
-        'data': data.toIso8601String(),
         'categoria_id': categoriaId,
         'fixed_transaction': fixedTransaction,
-    };
+      };
 
+      // Lógica para diferenciar transação fixa ou normal
+      if (fixedTransaction) {
+        dataToUpdate['dia_do_mes'] = diaDoMes;
+        dataToUpdate['data'] = null; // Garante que o campo 'data' seja nulo
+      } else {
+        dataToUpdate['data'] = (data ?? DateTime.now()).toIso8601String();
+        dataToUpdate['dia_do_mes'] = null; // Garante que o dia_do_mes seja nulo
+      }
 
-    final response = await _supabase
-        .from(_transactions)
-        .update(dataToUpdate)
-        .eq('id', id)
-        .eq('usuario_id', userId) // Segurança: só atualiza se for do usuário
-        .select()
-        .single();
+      final response = await _supabase
+          .from(_transactions)
+          .update(dataToUpdate)
+          .eq('id', id)
+          .eq('usuario_id', userId) // Segurança: só atualiza se for do usuário
+          .select()
+          .single();
 
-    return Transaction.fromJson(response);
-      
+      return Transaction.fromJson(response);
     } on PostgrestException catch (e) {
       throw Exception('Erro ao atualizar transação: ${e.message}');
-
     } catch (e) {
       throw Exception('Erro ao atualizar transação: ${e.toString()}');
     }
