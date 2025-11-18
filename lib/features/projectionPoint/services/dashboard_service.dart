@@ -14,6 +14,7 @@ class DashboardService {
           .from('transactions')
           .select('valor, tipo')
           .eq('usuario_id', userId)
+          .eq('status', 'ATIVO')
           .order('data', ascending: false);
 
       double balance = 0.0;
@@ -49,6 +50,7 @@ class DashboardService {
           .from('transactions')
           .select('valor, data')
           .eq('usuario_id', userId)
+          .eq('status', 'ATIVO')
           .eq('tipo', 'DESPESA')
           .gte('data', thirtyDaysAgo.toIso8601String());
 
