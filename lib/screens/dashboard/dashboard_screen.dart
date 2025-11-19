@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:horizon_finance/widgets/bottom_nav_menu.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:horizon_finance/widgets/projection_chart_card.dart';
+import 'package:horizon_finance/widgets/insights_card.dart';
 import 'package:supabase_flutter/supabase_flutter.dart'
     hide Provider, AuthState;
 import 'package:horizon_finance/features/transactions/services/transaction_service.dart';
@@ -138,6 +139,13 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
 
                     // --- 3. PROJEÇÃO DOS PRÓXIMOS 30 DIAS (Placeholder) ---
                     _buildProjectionChartCard(primaryBlue),
+                    const SizedBox(height: 25),
+
+                    const SizedBox(height: 25),
+
+                    // --- INSIGHTS DA IA ---
+                    const InsightsCard(),
+
                     const SizedBox(height: 25),
 
                     // --- 4. METAS EM ANDAMENTO ---

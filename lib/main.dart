@@ -7,6 +7,8 @@ import 'package:go_router/go_router.dart';
 import 'package:horizon_finance/app_router.dart';
 import 'package:horizon_finance/features/fixed-transactions/services/fixed_transaction_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:horizon_finance/features/ai_insights/provider/gemini_api_key_provider.dart';
+
 
 final navigatorKey = GlobalKey<NavigatorState>();
 
@@ -29,11 +31,16 @@ void main() async {
   }
 
   runApp(
-    const ProviderScope(
+    ProviderScope(
+      overrides: [
+        geminiApiKeyProvider.overrideWithValue("AIzaSyAb0UhIp-piLa1EJZIRcUFDw5_1bF8m_2U"),
+      ],
       child: HorizonsFinanceApp(),
     ),
   );
 }
+
+
 
 class HorizonsFinanceApp extends StatelessWidget {
   const HorizonsFinanceApp({super.key});
