@@ -1,5 +1,4 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:horizon_finance/features/transactions/services/transaction_service.dart'; // Para reusar o supabaseClientProvider
 import 'package:horizon_finance/features/transactions/models/transactions.dart'; // Para usar o TransactionType
 

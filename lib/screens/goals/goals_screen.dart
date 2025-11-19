@@ -7,29 +7,38 @@ class GoalsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final Color primaryBlue = Theme.of(context).primaryColor;
-    const Color secondaryGreen = Color(0xFF2E7D32); // Usando o verde secundário
+    const Color secondaryGreen = Color(0xFF2E7D32);
 
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: Text('Minhas Metas',
-            style: TextStyle(color: primaryBlue, fontWeight: FontWeight.bold)),
+        title: Text(
+          'Minhas Metas',
+          style: TextStyle(color: primaryBlue, fontWeight: FontWeight.bold),
+        ),
         backgroundColor: Colors.white,
         elevation: 0,
         centerTitle: true,
       ),
 
-      // Mantém o FAB e posiciona-o centralizado (mesma aparência do dashboard)
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {},
-        backgroundColor: primaryBlue,
-        child: const Icon(Icons.add, color: Colors.white),
+      // BOTÃO FLUTUANTE (agora azul)
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () {
+          // TODO: navegar para criação de nova meta
+        },
+        backgroundColor: primaryBlue,  // <<< COR AZUL DO APLICATIVO
+        icon: const Icon(Icons.add, color: Colors.white),
+        label: const Text(
+          "Nova Meta",
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
       ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
 
-      // Adiciona o menu de navegação compartilhado
       bottomNavigationBar: BottomNavMenu(
-        currentIndex: 2, // 2 = índice da tela de metas (ajuste se necessário)
+        currentIndex: 2,
         primaryColor: primaryBlue,
       ),
 
@@ -75,7 +84,7 @@ class GoalsScreen extends StatelessWidget {
     final String progressPercent = (progress * 100).toStringAsFixed(1);
 
     return Card(
-      elevation: 3, // Sombra suave para o clean look
+      elevation: 0, // <<< SEM SOMBRA
       margin: const EdgeInsets.only(bottom: 16),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(
@@ -86,11 +95,13 @@ class GoalsScreen extends StatelessWidget {
             Text(
               name,
               style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF424242)),
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF424242),
+              ),
             ),
             const SizedBox(height: 10),
+
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -107,17 +118,21 @@ class GoalsScreen extends StatelessWidget {
                 ),
               ],
             ),
+
             const SizedBox(height: 15),
+
             ClipRRect(
               borderRadius: BorderRadius.circular(5),
               child: LinearProgressIndicator(
                 value: progress,
                 backgroundColor: Colors.grey.shade300,
-                color: accentColor, // Usa a cor de destaque (verde ou azul)
+                color: accentColor,
                 minHeight: 12,
               ),
             ),
+
             const SizedBox(height: 5),
+
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [

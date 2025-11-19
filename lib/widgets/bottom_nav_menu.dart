@@ -1,14 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:horizon_finance/screens/transaction/transaction_form_screen.dart';
+import 'package:horizon_finance/features/transactions/models/transactions.dart';
 
 class BottomNavMenu extends StatelessWidget {
   final int currentIndex;
   final Color primaryColor;
+  final VoidCallback? onTransactionAdded;
 
   const BottomNavMenu({
     super.key,
     required this.currentIndex,
     required this.primaryColor,
+    this.onTransactionAdded,
   });
 
   @override
@@ -46,9 +50,22 @@ class BottomNavMenu extends StatelessWidget {
             },
           ),
 
-          const SizedBox(width: 40), // Espaço para o FAB
+          // 3. BOTÃO DE AÇÃO (ADICIONAR TRANSAÇÃO)
+          FloatingActionButton(
+            onPressed: () async {
+              await Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => const TransactionFormScreen(
+                      initialType: TransactionType.despesa),
+                ),
+              );
+              onTransactionAdded?.call();
+            },
+            backgroundColor: primaryColor,
+            child: const Icon(Icons.add, color: Colors.white),
+          ),
 
-          // 3. METAS
+          // 4. METAS
           IconButton(
             icon: Icon(
               Icons.track_changes,
@@ -61,7 +78,7 @@ class BottomNavMenu extends StatelessWidget {
             },
           ),
 
-          // 4. PERFIL
+          // 5. PERFIL
           IconButton(
             icon: Icon(
               Icons.person,

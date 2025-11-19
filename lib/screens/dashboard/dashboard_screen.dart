@@ -155,22 +155,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
       ),
       // Navegação inferior
       bottomNavigationBar: _buildBottomNavBar(context, primaryBlue),
-
-      floatingActionButton: FloatingActionButton(
-        onPressed: () async {
-          await Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (context) => const TransactionFormScreen(
-                  initialType: TransactionType.despesa),
-            ),
-          );
-
-          _loadData();
-        },
-        backgroundColor: primaryBlue,
-        child: const Icon(Icons.add, color: Colors.white),
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+        
     );
   }
 

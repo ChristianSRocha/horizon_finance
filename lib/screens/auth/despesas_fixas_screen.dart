@@ -330,7 +330,7 @@ class _DespesasFixasScreenState extends ConsumerState<DespesasFixasScreen> {
           borderSide: BorderSide(color: color, width: 2),
         ),
       ),
-      value: _selectedCategoryId,
+      initialValue: _selectedCategoryId,
       items: _expenseCategories.entries.map((entry) {
         return DropdownMenuItem<int>(
           value: entry.key,

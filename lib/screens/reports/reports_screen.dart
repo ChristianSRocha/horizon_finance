@@ -235,7 +235,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
                     ),
                     const SizedBox(height: 20),
 
-                    ExpenseChartCard(),
+                    const ExpenseChartCard(),
                     const SizedBox(height: 20),
                     
                     _buildSummaryCard(
@@ -902,7 +902,7 @@ class _EditTransactionModalState extends ConsumerState<_EditTransactionModal> {
                       .any((c) => c.id == _selectedCategoryId);
 
                   return DropdownButtonFormField<int>(
-                    value: selectionIsValid ? _selectedCategoryId : null,
+                    initialValue: selectionIsValid ? _selectedCategoryId : null,
                     items: categories
                         .map((c) => DropdownMenuItem(
                               value: c.id,
@@ -946,7 +946,7 @@ class _EditTransactionModalState extends ConsumerState<_EditTransactionModal> {
               if (widget.transaction.fixedTransaction)
                 // SE FOR TRANSAÇÃO FIXA
                 DropdownButtonFormField<int>(
-                  value: _selectedDayOfMonth,
+                  initialValue: _selectedDayOfMonth,
                   items: List.generate(
                     31,
                     (index) => DropdownMenuItem(
