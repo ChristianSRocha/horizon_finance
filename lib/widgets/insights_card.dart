@@ -366,7 +366,7 @@ class _InsightsCardState extends ConsumerState<InsightsCard> {
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Text(
-                      "horizon insights",
+                      "horizon AI",
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: 11,
