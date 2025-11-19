@@ -220,7 +220,7 @@ class _InsightsCardState extends ConsumerState<InsightsCard> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          "Horizon Finance Insights",
+                          "Horizon Insights",
                           style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
