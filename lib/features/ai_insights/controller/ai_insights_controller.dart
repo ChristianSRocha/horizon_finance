@@ -6,8 +6,8 @@ class AIInsightsController {
 
   AIInsightsController(this.service);
 
-  Future<AIInsightModel> loadInsights(String userId) async {
-    final insights = await service.generateInsights(userId);
+  Future<AIInsightModel> loadInsights(String userId, {String? userName}) async {
+    final insights = await service.generateInsights(userId, userName: userName);
 
     return AIInsightModel(insights: insights);
   }

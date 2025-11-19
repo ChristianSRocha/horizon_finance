@@ -8,6 +8,8 @@ import 'package:horizon_finance/app_router.dart';
 import 'package:horizon_finance/features/fixed-transactions/services/fixed_transaction_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:horizon_finance/features/ai_insights/provider/gemini_api_key_provider.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+
 
 
 final navigatorKey = GlobalKey<NavigatorState>();
@@ -15,13 +17,16 @@ final navigatorKey = GlobalKey<NavigatorState>();
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  // 1️⃣ Carrega o arquivo .env
+  await dotenv.load(fileName: ".env");
+
+  // 2️⃣ Inicializa o Supabase com variáveis do .env
   await Supabase.initialize(
-    url: 'https://qtneqexgrvkfcqtgypyl.supabase.co',
-    anonKey:
-        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF0bmVxZXhncnZrZmNxdGd5cHlsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA4NzgzNTIsImV4cCI6MjA3NjQ1NDM1Mn0.WwsUCPjKoyRuKeweYSIXoWvjlxwEvSuR3hBQEpdw7k4',
+    url: dotenv.env['SUPABASE_URL']!,
+    anonKey: dotenv.env['SUPABASE_ANON_KEY']!,
   );
 
-  // Processa templates mensais
+  // 3️⃣ Processa templates mensais
   final container = ProviderContainer();
   try {
     final service = container.read(fixedTransactionServiceProvider);
@@ -30,10 +35,13 @@ void main() async {
     developer.log('Erro ao processar templates: $e');
   }
 
+  // 4️⃣ Inicia o app já sobrescrevendo o provider da API KEY do Gemini
   runApp(
     ProviderScope(
       overrides: [
-        geminiApiKeyProvider.overrideWithValue("AIzaSyAb0UhIp-piLa1EJZIRcUFDw5_1bF8m_2U"),
+        geminiApiKeyProvider.overrideWithValue(
+          dotenv.env['GEMINI_API_KEY']!,
+        ),
       ],
       child: HorizonsFinanceApp(),
     ),
