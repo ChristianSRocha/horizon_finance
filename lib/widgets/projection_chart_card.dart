@@ -152,30 +152,24 @@ class _ProjectionChartCardState extends ConsumerState<ProjectionChartCard> {
 
     return Column(
       children: [
-        // Indicadores de valores
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
-            Expanded(
-            child:  
-            _buildIndicator(
-              'Saldo Atual',
-              currencyFormat.format(firstBalance),
-              Colors.blue,
-              Icons.account_balance_wallet,
+       // Indicador principal centralizado
+        Center(
+          child: _buildMainIndicator(
+            value: currencyFormat.format(lastBalance),
+            color: lastBalance < 0 ? Colors.red : Colors.green,
+            icon: lastBalance < 0 ? Icons.trending_down : Icons.trending_up,),
+      ),
+
+        const SizedBox(height: 8),
+        Center(
+          child: Text(
+            'Saldo atual: ${currencyFormat.format(firstBalance)}',
+            style: TextStyle(
+              fontSize: 13,
+              color: Colors.grey[600],
+              fontWeight: FontWeight.w500,
             ),
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child:
-            _buildIndicator(
-              'Em 90 dias',
-              currencyFormat.format(lastBalance),
-              lastBalance < 0 ? Colors.red : Colors.green,
-              lastBalance < 0 ? Icons.trending_down : Icons.trending_up,
-            ),
-            ),
-          ],
+          ),
         ),
         const SizedBox(height: 16),
 
@@ -273,24 +267,24 @@ class _ProjectionChartCardState extends ConsumerState<ProjectionChartCard> {
                     },
                   ),
                 ),
-                leftTitles: AxisTitles(
+               leftTitles: AxisTitles(
                   sideTitles: SideTitles(
                     showTitles: true,
-                    reservedSize: 70,
+                    interval: 1000, // força espaçamento numérico igual
+                    reservedSize: 50,
                     getTitlesWidget: (value, meta) {
+                      final short = NumberFormat.compact(locale: 'pt_BR').format(value);
                       return Padding(
-                        padding: const EdgeInsets.only(right: 8),
+                        padding: const EdgeInsets.only(right: 6),
                         child: Text(
-                          currencyFormat.format(value),
-                          style: TextStyle(
-                            fontSize: 10,
-                            color: Colors.grey[600],
-                          ),
+                          short,
+                          style: TextStyle(fontSize: 11, color: Colors.grey[600]),
                         ),
                       );
                     },
                   ),
                 ),
+
                 topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
                 rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
               ),
@@ -404,6 +398,63 @@ class _ProjectionChartCardState extends ConsumerState<ProjectionChartCard> {
     );
   }
 
+  Widget _buildMainIndicator({
+  required String value,
+  required Color color,
+  required IconData icon,
+}) {
+  return Container(
+    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+    decoration: BoxDecoration(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(16),
+      boxShadow: [
+        BoxShadow(
+          color: Colors.black12,
+          blurRadius: 6,
+          offset: Offset(0, 2),
+        ),
+      ],
+    ),
+    child: Row(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            color: color.withOpacity(0.15),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Icon(icon, color: color, size: 26),
+        ),
+        const SizedBox(width: 16),
+
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Saldo projetado em 90 dias',
+              style: TextStyle(
+                fontSize: 13,
+                color: Colors.grey[600],
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              value,
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+                color: color,
+              ),
+            ),
+          ],
+        ),
+      ],
+    ),
+  );
+}
+
+
   int _calculateDaysUntilZero(List points) {
     for (int i = 0; i < points.length; i++) {
       if (points[i].balance < 0) {
@@ -433,4 +484,15 @@ class _ProjectionChartCardState extends ConsumerState<ProjectionChartCard> {
     if (range < 10000) return 2000;
     return 5000;
   }
+
+  String _formatCompact(double value) {
+  if (value.abs() >= 1000000) {
+    return "R\$ ${(value / 1000000).toStringAsFixed(1)} mi";
+  }
+  if (value.abs() >= 1000) {
+    return "R\$ ${(value / 1000).toStringAsFixed(1)} mil";
+  }
+  return "R\$ ${value.toStringAsFixed(0)}";
+}
+
 }
