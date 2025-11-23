@@ -24,7 +24,7 @@ class _InsightsCardState extends ConsumerState<InsightsCard> {
     });
 
     // Auto-scroll suave a cada 8 segundos
-    Timer.periodic(const Duration(seconds: 8), (timer) {
+    Timer.periodic(const Duration(seconds: 15), (timer) {
       if (_pageController.hasClients) {
         final nextPage = (_currentPage + 1) % 3;
         _pageController.animateToPage(
@@ -376,7 +376,7 @@ class _InsightsCardState extends ConsumerState<InsightsCard> {
                   ),
                   const SizedBox(height: 16),
                   // Texto do insight
-                  Expanded(
+                  Flexible(
                     child: Center(
                       child: Text(
                         text,
