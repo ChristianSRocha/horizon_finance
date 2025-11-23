@@ -13,7 +13,7 @@ class AIInsightsRepository {
     required this.geminiApiKey,
   });
 
-  /// 1. Buscar transações do usuário
+
   Future<List<Transaction>> fetchUserTransactions(String userId) async {
     final data = await supabase
         .from("transactions")
@@ -23,7 +23,6 @@ class AIInsightsRepository {
     return data.map<Transaction>((t) => Transaction.fromJson(t)).toList();
   }
 
-  /// 2. Chamar GEMINI
   Future<List<String>> getInsightsFromGemini(String prompt) async {
     final url = Uri.parse(
       "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=$geminiApiKey",
@@ -56,7 +55,6 @@ class AIInsightsRepository {
 
     String rawText = candidates[0]["content"]["parts"][0]["text"];
 
-    // 🔥 CORREÇÃO: Remover marcadores de código Markdown
     rawText = _cleanMarkdown(rawText);
 
     // Tentar parsear como JSON
