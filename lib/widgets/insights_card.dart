@@ -351,9 +351,9 @@ class _InsightsCardState extends ConsumerState<InsightsCard> {
             // Conteúdo
             Padding(
               padding: const EdgeInsets.all(24),
+              child: SingleChildScrollView(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   // Badge de número
                   Container(
@@ -376,8 +376,7 @@ class _InsightsCardState extends ConsumerState<InsightsCard> {
                   ),
                   const SizedBox(height: 16),
                   // Texto do insight
-                  Flexible(
-                    child: Center(
+                     Center(
                       child: Text(
                         text,
                         style: const TextStyle(
@@ -389,9 +388,9 @@ class _InsightsCardState extends ConsumerState<InsightsCard> {
                         textAlign: TextAlign.center,
                       ),
                     ),
-                  ),
                 ],
               ),
+            ),
             ),
           ],
         ),
