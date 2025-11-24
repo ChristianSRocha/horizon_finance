@@ -6,6 +6,7 @@ import 'package:horizon_finance/screens/auth/password_reset_request_screen.dart'
 import 'package:horizon_finance/screens/dashboard/dashboard_screen.dart';
 import 'package:horizon_finance/screens/auth/renda_mensal_screen.dart';
 import 'package:horizon_finance/screens/auth/despesas_fixas_screen.dart';
+import 'package:horizon_finance/screens/profile/edit_profile_screen.dart';
 import 'package:horizon_finance/screens/reports/reports_screen.dart';
 import 'package:horizon_finance/screens/goals/goals_screen.dart';
 import 'package:horizon_finance/screens/profile/profile_screen.dart';
@@ -58,6 +59,10 @@ final router = GoRouter(
     GoRoute(
       path: '/profile',
       builder: (context, state) => const ProfileScreen(),
+    ),
+    GoRoute(
+      path: '/edit-profile',
+      builder: (context, state) => const EditProfileScreen(),
     ),
   ],
 );
