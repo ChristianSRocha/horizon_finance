@@ -35,30 +35,31 @@ class UserService extends Notifier<Profile?> {
   }
 
   Future<void> updateAvatar(File imageFile) async {
-    try {
-      final userId = _supabase.auth.currentUser?.id;
-      if (userId == null) throw Exception('Usuário não autenticado');
+  try {
+    final userId = _supabase.auth.currentUser?.id;
+    if (userId == null) throw Exception('Usuário não autenticado');
 
-      final fileName = '$userId-${DateTime.now().millisecondsSinceEpoch}.jpg';
-      
-      await _supabase.storage.from('avatars').upload(
-            fileName,
-            imageFile,
-            fileOptions: const FileOptions(upsert: true),
-          );
+    // O arquivo AGORA vai dentro da pasta do userId
+    final filePath = '$userId/avatar-${DateTime.now().millisecondsSinceEpoch}.jpg';
 
-      final imageUrl = _supabase.storage.from('avatars').getPublicUrl(fileName);
+    await _supabase.storage.from('avatars').upload(
+          filePath,
+          imageFile,
+          fileOptions: const FileOptions(upsert: true),
+        );
 
-      await _supabase.from('profiles').update({
-        'avatar_url': imageUrl,
-        'updated_at': DateTime.now().toIso8601String(),
-      }).eq('id', userId);
+    final imageUrl = _supabase.storage.from('avatars').getPublicUrl(filePath);
 
-      await getProfile();
-    } catch (e) {
-      rethrow;
-    }
+    await _supabase.from('profiles').update({
+      'avatar_url': imageUrl,
+      'updated_at': DateTime.now().toIso8601String(),
+    }).eq('id', userId);
+
+    await getProfile();
+  } catch (e) {
+    rethrow;
   }
+}
 
   Future<void> updateProfile({String? name, String? email}) async {
     try {
