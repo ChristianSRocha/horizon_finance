@@ -161,7 +161,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               ),
             ),
       bottomNavigationBar: BottomNavMenu(
-        currentIndex: 3,
+        currentIndex: 4,
         primaryColor: primaryBlue,
       ),
     );

@@ -1,71 +1,89 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart'; 
+import 'package:flutter_riverpod/flutter_riverpod.dart'; 
 import 'package:horizon_finance/widgets/bottom_nav_menu.dart';
+import 'package:horizon_finance/models/financial_goal.dart'; 
 
-class GoalsScreen extends StatelessWidget {
+class GoalsScreen extends ConsumerWidget { 
   const GoalsScreen({super.key});
 
+  final List<FinancialGoal> goals = const []; 
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final Color primaryBlue = Theme.of(context).primaryColor;
-    const Color secondaryGreen = Color(0xFF2E7D32);
+    
+    final bool isEmpty = goals.isEmpty;
+    final bool isLoading = false;
 
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: Text(
-          'Minhas Metas',
-          style: TextStyle(color: primaryBlue, fontWeight: FontWeight.bold),
-        ),
+        title: Text('Minhas Metas',
+            style: TextStyle(color: primaryBlue, fontWeight: FontWeight.bold)),
         backgroundColor: Colors.white,
         elevation: 0,
         centerTitle: true,
       ),
 
-      // BOTÃO FLUTUANTE (agora azul)
-      floatingActionButton: FloatingActionButton.extended(
+      
+      floatingActionButton: FloatingActionButton(
         onPressed: () {
-          // TODO: navegar para criação de nova meta
+          context.push('/goals/add'); 
         },
-        backgroundColor: primaryBlue,  // <<< COR AZUL DO APLICATIVO
-        icon: const Icon(Icons.add, color: Colors.white),
-        label: const Text(
-          "Nova Meta",
-          style: TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
+        backgroundColor: primaryBlue,
+        child: const Icon(Icons.add, color: Colors.white),
       ),
+     
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
 
       bottomNavigationBar: BottomNavMenu(
-        currentIndex: 2,
+        currentIndex: 2, 
         primaryColor: primaryBlue,
       ),
 
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
+      body: isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : isEmpty
+              ? _buildEmptyState(context, primaryBlue) 
+              : SingleChildScrollView(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    children: goals.map((goal) {
+                      return _buildGoalCard(
+                        goal: goal,
+                        primaryColor: primaryBlue,
+                        accentColor: goal.type == GoalType.savings 
+                            ? const Color(0xFF2E7D32) 
+                            : primaryBlue.withOpacity(0.7),
+                      );
+                    }).toList(),
+                  ),
+                ),
+    );
+  }
+
+  
+
+  Widget _buildEmptyState(BuildContext context, Color primaryColor) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32.0),
         child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            _buildGoalCard(
-              name: 'Reserva de Emergência',
-              currentAmount: 6500.00,
-              targetAmount: 10000.00,
-              primaryColor: primaryBlue,
-              accentColor: secondaryGreen,
+            Icon(Icons.flag_outlined, size: 80, color: primaryColor.withOpacity(0.5)),
+            const SizedBox(height: 20),
+            const Text(
+              'Você ainda não tem metas cadastradas.',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 18, color: Colors.grey),
             ),
-            _buildGoalCard(
-              name: 'Viagem Europa 2026',
-              currentAmount: 1200.00,
-              targetAmount: 15000.00,
-              primaryColor: primaryBlue,
-              accentColor: primaryBlue.withOpacity(0.7),
-            ),
-            _buildGoalCard(
-              name: 'Troca de Carro',
-              currentAmount: 25000.00,
-              targetAmount: 40000.00,
-              primaryColor: primaryBlue,
-              accentColor: primaryBlue.withOpacity(0.7),
+            const SizedBox(height: 10),
+            Text(
+              'Use o botão "+" para adicionar sua primeira meta!',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 16, color: primaryColor),
             ),
           ],
         ),
@@ -74,17 +92,16 @@ class GoalsScreen extends StatelessWidget {
   }
 
   Widget _buildGoalCard({
-    required String name,
-    required double currentAmount,
-    required double targetAmount,
+    required FinancialGoal goal,
     required Color primaryColor,
     required Color accentColor,
   }) {
-    final double progress = currentAmount / targetAmount;
+    final double safeTargetAmount = goal.targetAmount > 0 ? goal.targetAmount : 1.0; 
+    final double progress = goal.currentAmount / safeTargetAmount;
     final String progressPercent = (progress * 100).toStringAsFixed(1);
 
     return Card(
-      elevation: 0, // <<< SEM SOMBRA
+      elevation: 0, 
       margin: const EdgeInsets.only(bottom: 16),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(
@@ -93,46 +110,34 @@ class GoalsScreen extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              name,
-              style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF424242),
-              ),
+              goal.name,
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF424242)),
             ),
             const SizedBox(height: 10),
-
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'R\$ ${currentAmount.toStringAsFixed(2).replaceAll('.', ',')}',
-                  style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF424242)),
+                  'R\$ ${goal.currentAmount.toStringAsFixed(2).replaceAll('.', ',')}',
+                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF424242)),
                 ),
                 Text(
-                  'Meta: R\$ ${targetAmount.toStringAsFixed(2).replaceAll('.', ',')}',
+                  'Meta: R\$ ${goal.targetAmount.toStringAsFixed(2).replaceAll('.', ',')}',
                   style: const TextStyle(fontSize: 14, color: Colors.grey),
                 ),
               ],
             ),
-
             const SizedBox(height: 15),
-
             ClipRRect(
               borderRadius: BorderRadius.circular(5),
               child: LinearProgressIndicator(
                 value: progress,
                 backgroundColor: Colors.grey.shade300,
-                color: accentColor,
+                color: accentColor, 
                 minHeight: 12,
               ),
             ),
-
             const SizedBox(height: 5),
-
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
