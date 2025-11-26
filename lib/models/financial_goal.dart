@@ -2,6 +2,24 @@ enum GoalStatus { active, completed, paused, cancelled }
 
 enum GoalType { savings, debt, investment, emergency, other }
 
+
+extension GoalTypeExtension on GoalType {
+  String get displayName {
+    switch (this) {
+      case GoalType.savings:
+        return 'Poupança';
+      case GoalType.debt:
+        return 'Quitar Dívidas';
+      case GoalType.investment:
+        return 'Investimento';
+      case GoalType.emergency:
+        return 'Reserva de Emergência';
+      case GoalType.other:
+        return 'Outro';
+    }
+  }
+}
+
 class FinancialGoal {
   final String id;
   final String userId;
@@ -39,9 +57,11 @@ class FinancialGoal {
       currentAmount: (json['current_amount'] ?? 0).toDouble(),
       type: GoalType.values.firstWhere(
         (e) => e.toString() == 'GoalType.${json['type']}',
+        orElse: () => GoalType.other,
       ),
       status: GoalStatus.values.firstWhere(
         (e) => e.toString() == 'GoalStatus.${json['status']}',
+        orElse: () => GoalStatus.active,
       ),
       targetDate: DateTime.parse(json['target_date']),
       createdAt: DateTime.parse(json['created_at']),
@@ -63,89 +83,5 @@ class FinancialGoal {
       'created_at': createdAt.toIso8601String(),
       'updated_at': updatedAt.toIso8601String(),
     };
-  }
-
-  String get typeDisplayName {
-    switch (type) {
-      case GoalType.savings:
-        return 'Poupança';
-      case GoalType.debt:
-        return 'Quitar Dívidas';
-      case GoalType.investment:
-        return 'Investimento';
-      case GoalType.emergency:
-        return 'Reserva de Emergência';
-      case GoalType.other:
-        return 'Outro';
-    }
-  }
-
-  String get statusDisplayName {
-    switch (status) {
-      case GoalStatus.active:
-        return 'Ativo';
-      case GoalStatus.completed:
-        return 'Concluído';
-      case GoalStatus.paused:
-        return 'Pausado';
-      case GoalStatus.cancelled:
-        return 'Cancelado';
-    }
-  }
-
-  double get progressPercentage {
-    if (targetAmount <= 0) return 0.0;
-    return (currentAmount / targetAmount * 100).clamp(0.0, 100.0);
-  }
-
-  double get remainingAmount {
-    return (targetAmount - currentAmount).clamp(0.0, double.infinity);
-  }
-
-  int get daysRemaining {
-    final now = DateTime.now();
-    final difference = targetDate.difference(now).inDays;
-    return difference > 0 ? difference : 0;
-  }
-
-  double get dailyRequiredAmount {
-    if (daysRemaining <= 0) return 0.0;
-    return remainingAmount / daysRemaining;
-  }
-
-  bool get isCompleted {
-    return status == GoalStatus.completed || currentAmount >= targetAmount;
-  }
-
-  bool get isOverdue {
-    return DateTime.now().isAfter(targetDate) && !isCompleted;
-  }
-
-  FinancialGoal copyWith({
-    String? id,
-    String? userId,
-    String? name,
-    String? description,
-    double? targetAmount,
-    double? currentAmount,
-    GoalType? type,
-    GoalStatus? status,
-    DateTime? targetDate,
-    DateTime? createdAt,
-    DateTime? updatedAt,
-  }) {
-    return FinancialGoal(
-      id: id ?? this.id,
-      userId: userId ?? this.userId,
-      name: name ?? this.name,
-      description: description ?? this.description,
-      targetAmount: targetAmount ?? this.targetAmount,
-      currentAmount: currentAmount ?? this.currentAmount,
-      type: type ?? this.type,
-      status: status ?? this.status,
-      targetDate: targetDate ?? this.targetDate,
-      createdAt: createdAt ?? this.createdAt,
-      updatedAt: updatedAt ?? this.updatedAt,
-    );
   }
 }

@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:horizon_finance/screens/auth/cadastro_screen.dart';
 import 'package:horizon_finance/screens/auth/login_cadastro_screen.dart';
@@ -11,6 +12,8 @@ import 'package:horizon_finance/screens/reports/reports_screen.dart';
 import 'package:horizon_finance/screens/goals/goals_screen.dart';
 import 'package:horizon_finance/screens/profile/profile_screen.dart';
 import 'package:horizon_finance/main.dart';
+import 'package:horizon_finance/screens/goals/goals_form_screen.dart'; 
+
 
 final router = GoRouter(
   navigatorKey: navigatorKey,
@@ -55,6 +58,12 @@ final router = GoRouter(
     GoRoute(
       path: '/goals',
       builder: (context, state) => const GoalsScreen(),
+      routes: [ 
+        GoRoute(
+          path: 'add', 
+          builder: (context, state) => const GoalFormScreen(),
+        ),
+      ],
     ),
     GoRoute(
       path: '/profile',
