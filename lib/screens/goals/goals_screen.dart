@@ -38,7 +38,7 @@ class GoalsScreen extends StatelessWidget {
       ),
 
       bottomNavigationBar: BottomNavMenu(
-        currentIndex: 2,
+        currentIndex: 3,
         primaryColor: primaryBlue,
       ),
 

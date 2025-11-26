@@ -61,6 +61,7 @@ class BottomNavMenu extends StatelessWidget {
               );
               onTransactionAdded?.call();
             },
+            // Restaurando o azul original (cor passada via `primaryColor`)
             backgroundColor: primaryColor,
             child: const Icon(Icons.add, color: Colors.white),
           ),
@@ -69,10 +70,10 @@ class BottomNavMenu extends StatelessWidget {
           IconButton(
             icon: Icon(
               Icons.track_changes,
-              color: currentIndex == 2 ? primaryColor : Colors.grey,
+              color: currentIndex == 3 ? primaryColor : Colors.grey,
             ),
             onPressed: () {
-              if (currentIndex != 2) {
+              if (currentIndex != 3) {
                 context.go('/goals');
               }
             },
@@ -82,10 +83,10 @@ class BottomNavMenu extends StatelessWidget {
           IconButton(
             icon: Icon(
               Icons.person,
-              color: currentIndex == 3 ? primaryColor : Colors.grey,
+              color: currentIndex == 4 ? primaryColor : Colors.grey,
             ),
             onPressed: () {
-              if (currentIndex != 3) {
+              if (currentIndex != 4) {
                 context.go('/profile');
               }
             },

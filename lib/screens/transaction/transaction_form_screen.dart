@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:horizon_finance/features/transactions/models/transactions.dart';
 import 'package:horizon_finance/features/transactions/services/transaction_service.dart';
+import 'package:horizon_finance/widgets/bottom_nav_menu.dart';
 
 // Modelo para categorias
 class Category {
@@ -27,17 +28,18 @@ class TransactionFormScreen extends ConsumerStatefulWidget {
   });
 
   @override
-  ConsumerState<TransactionFormScreen> createState() => _TransactionFormScreenState();
+  ConsumerState<TransactionFormScreen> createState() =>
+      _TransactionFormScreenState();
 }
 
 class _TransactionFormScreenState extends ConsumerState<TransactionFormScreen> {
   late TransactionType _type;
   final _formKey = GlobalKey<FormState>();
-  
+
   // Controllers
   final TextEditingController _valueController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
-  
+
   // Estados
   DateTime _selectedDate = DateTime.now();
   int? _selectedCategoryId;
@@ -51,7 +53,7 @@ class _TransactionFormScreenState extends ConsumerState<TransactionFormScreen> {
     Category(id: 3, nome: 'Investimentos', tipo: 'RECEITA'),
     Category(id: 4, nome: 'Presentes', tipo: 'RECEITA'),
     Category(id: 5, nome: 'Outras Receitas', tipo: 'RECEITA'),
-    
+
     // DESPESAS
     Category(id: 6, nome: 'Aluguel', tipo: 'DESPESA'),
     Category(id: 7, nome: 'Financiamento', tipo: 'DESPESA'),
@@ -86,7 +88,7 @@ class _TransactionFormScreenState extends ConsumerState<TransactionFormScreen> {
   void initState() {
     super.initState();
     _type = widget.initialType;
-    
+
     // Se estiver editando, preenche os campos
     if (widget.isEditing && widget.transaction != null) {
       final t = widget.transaction!;
@@ -94,11 +96,10 @@ class _TransactionFormScreenState extends ConsumerState<TransactionFormScreen> {
       _selectedDate = t.data ?? DateTime.now();
       _type = t.tipo;
       _selectedCategoryId = t.categoriaId;
-      
+
       // Formata o valor inicial
       final formatter = NumberFormat.currency(locale: 'pt_BR', symbol: '');
       _valueController.text = formatter.format(t.valor).trim();
-      
     }
   }
 
@@ -112,13 +113,13 @@ class _TransactionFormScreenState extends ConsumerState<TransactionFormScreen> {
   // Converte o valor formatado para double
   double _parseValue(String text) {
     if (text.isEmpty) return 0.0;
-    
+
     String cleanValue = text
         .replaceAll('R\$', '')
         .replaceAll(' ', '')
         .replaceAll('.', '') // Remove separador de milhar
         .replaceAll(',', '.'); // Converte decimal
-    
+
     return double.tryParse(cleanValue) ?? 0.0;
   }
 
@@ -129,7 +130,7 @@ class _TransactionFormScreenState extends ConsumerState<TransactionFormScreen> {
     }
 
     final valor = _parseValue(_valueController.text);
-    final descricao = _descriptionController.text.isEmpty 
+    final descricao = _descriptionController.text.isEmpty
         ? (_type == TransactionType.receita ? 'Receita' : 'Despesa')
         : _descriptionController.text;
 
@@ -166,7 +167,7 @@ class _TransactionFormScreenState extends ConsumerState<TransactionFormScreen> {
 
     try {
       final transactionService = ref.read(TransactionServiceProvider);
-      
+
       if (widget.isEditing && widget.transaction != null) {
         // ATUALIZAÇÃO
 
@@ -199,7 +200,6 @@ class _TransactionFormScreenState extends ConsumerState<TransactionFormScreen> {
           fixedTransaction: false,
         );
 
-
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
@@ -214,9 +214,7 @@ class _TransactionFormScreenState extends ConsumerState<TransactionFormScreen> {
         // Retorna true para indicar que houve mudança
         Navigator.of(context).pop(true);
       }
-
     } catch (e) {
-
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -226,14 +224,12 @@ class _TransactionFormScreenState extends ConsumerState<TransactionFormScreen> {
           ),
         );
       }
-
     } finally {
       if (mounted) {
         setState(() {
           _isLoading = false;
         });
       }
-      
     }
   }
 
@@ -271,7 +267,6 @@ class _TransactionFormScreenState extends ConsumerState<TransactionFormScreen> {
       final transactionService = ref.read(TransactionServiceProvider);
       await transactionService.deleteTransaction(widget.transaction!.id);
 
-
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -281,9 +276,7 @@ class _TransactionFormScreenState extends ConsumerState<TransactionFormScreen> {
         );
         Navigator.of(context).pop(true);
       }
-
     } catch (e) {
-
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -292,7 +285,6 @@ class _TransactionFormScreenState extends ConsumerState<TransactionFormScreen> {
           ),
         );
       }
-
     } finally {
       if (mounted) {
         setState(() {
@@ -327,7 +319,6 @@ class _TransactionFormScreenState extends ConsumerState<TransactionFormScreen> {
       setState(() {
         _selectedDate = picked;
       });
-      
     }
   }
 
@@ -344,6 +335,8 @@ class _TransactionFormScreenState extends ConsumerState<TransactionFormScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
+        // Removemos o botão de voltar para forçar a navegação via menu inferior
+        automaticallyImplyLeading: false,
         title: Text(title,
             style: TextStyle(color: typeColor, fontWeight: FontWeight.bold)),
         backgroundColor: Colors.white,
@@ -377,7 +370,7 @@ class _TransactionFormScreenState extends ConsumerState<TransactionFormScreen> {
               ),
             ),
           ),
-          
+
           // Loading overlay
           if (_isLoading)
             Container(
@@ -387,6 +380,14 @@ class _TransactionFormScreenState extends ConsumerState<TransactionFormScreen> {
               ),
             ),
         ],
+      ),
+      // Menu inferior usado para navegação (FAB já presente no menu)
+      bottomNavigationBar: BottomNavMenu(
+        currentIndex: 2,
+        primaryColor: Theme.of(context).primaryColor,
+        // Ao salvar/atualizar/excluir esta tela chama Navigator.pop(true).
+        // O callback aqui pode ser usado pelo pai se necessário — deixamos vazio.
+        onTransactionAdded: () {},
       ),
     );
   }
@@ -408,7 +409,6 @@ class _TransactionFormScreenState extends ConsumerState<TransactionFormScreen> {
           _type = isReceita ? TransactionType.despesa : TransactionType.receita;
           _selectedCategoryId = null; // Reseta a categoria
         });
-        
       },
     );
   }
@@ -478,12 +478,11 @@ class _TransactionFormScreenState extends ConsumerState<TransactionFormScreen> {
         setState(() {
           _selectedCategoryId = newValue;
         });
-        
+
         final categoria = _allCategories.firstWhere(
           (cat) => cat.id == newValue,
           orElse: () => Category(id: 0, nome: 'Desconhecida', tipo: ''),
         );
-        
       },
       validator: (value) {
         if (value == null) return 'Selecione a categoria.';
