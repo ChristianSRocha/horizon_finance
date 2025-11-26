@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:horizon_finance/features/fixed-transactions/services/fixed_transaction_service.dart';
+import'package:horizon_finance/features/transactions/services/transaction_service.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'dart:developer' as developer;
 import 'package:supabase_flutter/supabase_flutter.dart' hide Provider, AuthState;
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:horizon_finance/features/transactions/models/transactions.dart';
 
 class RendaMensalScreen extends ConsumerStatefulWidget {
@@ -20,7 +21,6 @@ class _RendaMensalScreenState extends ConsumerState<RendaMensalScreen> {
   String _formattedValue = '0,00';  
   bool _isLoading = false;
   bool _checking = true;
-  int _selectedDay = 5; // Dia padrão para recebimento da renda
   
   void _formatAndSetAmount(String text) {
     developer.log(
@@ -66,69 +66,38 @@ class _RendaMensalScreenState extends ConsumerState<RendaMensalScreen> {
     return double.tryParse(cleanValue) ?? 0.0;
   }
 
-  // Salva a renda mensal como TEMPLATE (não como transação)
+  // Salva a renda mensal no backend
   Future<void> _saveAndContinue() async {
     final valor = _getNumericValue();
 
-    if (valor <= 0) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Por favor, insira um valor válido maior que zero.'),
-          backgroundColor: Colors.orange,
-        ),
-      );
-      return;
-    }
-
     developer.log(
-      'Criando template de renda mensal: R\$ ${valor.toStringAsFixed(2)}, Dia: $_selectedDay',
+      'Valor a ser salvo: R\$ ${valor.toStringAsFixed(2)}',
       name: 'RendaMensalScreen',
     );
   
+    
     setState(() {
       _isLoading = true;
     });
     
     try {
-      // USA O FIXED TRANSACTION SERVICE para criar TEMPLATE
-      final fixedService = ref.read(fixedTransactionServiceProvider);
-      
-      await fixedService.createTemplate(
-        descricao: 'Renda Mensal',
-        tipo: TransactionType.receita,
-        valor: valor,
-        diaDoMes: _selectedDay,
-        categoriaId: 1, // Categoria de Salário/Renda
-      );
+
+      final transactionService = ref.read(TransactionServiceProvider);
+      final transaction = await transactionService.addTransaction(descricao: 'Renda Mensal', tipo: TransactionType.receita, valor: valor, categoriaId: 1, fixedTransaction: true, diaDoMes: 5, data: null);
 
       developer.log(
-        'Template de renda mensal criado com sucesso!',
+        'Transação salva com sucesso: $transaction',
         name: 'RendaMensalScreen',
       );
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Renda configurada! Será creditada todo dia $_selectedDay.',
-            ),
-            backgroundColor: Colors.green,
-            duration: const Duration(seconds: 2),
-          ),
-        );
-
-        // Pequeno delay para mostrar a mensagem
-        await Future.delayed(const Duration(milliseconds: 500));
-        
-        if (mounted) {
-          context.go('/despesas-fixas');
-        }
+        context.go('/despesas-fixas');
       }
     } catch (e) {
       developer.log(
-        'ERRO AO CRIAR TEMPLATE',
+        'ERRO AO SALVAR',
         name: 'RendaMensalScreen',
-        error: e,
+        error: e.toString(),
       );
 
       if (mounted) {
@@ -136,51 +105,16 @@ class _RendaMensalScreenState extends ConsumerState<RendaMensalScreen> {
           SnackBar(
             content: Text('Erro ao salvar: ${e.toString()}'),
             backgroundColor: Colors.red,
-            duration: const Duration(seconds: 3),
           ),
         );
       }
+
     } finally {
       if (mounted) {
         setState(() {
           _isLoading = false;
         });
       }
-    }
-  }
-
-  // Seletor de dia para recebimento
-  Future<void> _selectDay(BuildContext context) async {
-    final int? picked = await showDialog<int>(
-      context: context,
-      builder: (BuildContext context) {
-        return SimpleDialog(
-          title: const Text('Selecione o dia do recebimento'),
-          children: List.generate(31, (index) {
-            final day = index + 1;
-            return SimpleDialogOption(
-              onPressed: () => Navigator.pop(context, day),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8.0),
-                child: Text(
-                  'Dia $day',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: day == _selectedDay ? FontWeight.bold : FontWeight.normal,
-                    color: day == _selectedDay 
-                        ? Theme.of(context).primaryColor 
-                        : Colors.black87,
-                  ),
-                ),
-              ),
-            );
-          }),
-        );
-      },
-    );
-    
-    if (picked != null) {
-      setState(() => _selectedDay = picked);
     }
   }
 
@@ -267,9 +201,7 @@ class _RendaMensalScreenState extends ConsumerState<RendaMensalScreen> {
                   color: Colors.grey,
                 ),
               ),
-              const SizedBox(height: 40),
-
-              // Card do valor
+              const SizedBox(height: 60),
               GestureDetector(
                 onTap: () {
                   _focusNode.requestFocus();
@@ -308,62 +240,7 @@ class _RendaMensalScreenState extends ConsumerState<RendaMensalScreen> {
                   ),
                 ),
               ),
-
-              const SizedBox(height: 30),
-
-              // Campo para selecionar o dia de recebimento
-              Card(
-                elevation: 0,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  side: BorderSide(color: Colors.grey.shade300, width: 1.5),
-                ),
-                child: InkWell(
-                  onTap: () => _selectDay(context),
-                  borderRadius: BorderRadius.circular(12),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Row(
-                      children: [
-                        Icon(Icons.calendar_today, color: primaryBlue, size: 24),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text(
-                                'Dia do recebimento',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.grey,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                'Dia $_selectedDay de cada mês',
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600,
-                                  color: Colors.black87,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        Icon(Icons.arrow_forward_ios, 
-                          color: Colors.grey.shade400, 
-                          size: 16,
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-
               const SizedBox(height: 40),
-
-              // TextField invisível para capturar input
               Opacity(
                 opacity: 0.0,
                 child: SizedBox(
@@ -375,8 +252,6 @@ class _RendaMensalScreenState extends ConsumerState<RendaMensalScreen> {
                   ),
                 ),
               ),
-
-              // Botão continuar
               ElevatedButton(
                 onPressed: _isLoading ? null : _saveAndContinue,
                 style: ElevatedButton.styleFrom(
@@ -403,19 +278,7 @@ class _RendaMensalScreenState extends ConsumerState<RendaMensalScreen> {
                         style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                       ),
               ),
-
               const SizedBox(height: 20),
-
-              // Texto informativo
-              Text(
-                'Você receberá automaticamente essa renda todo dia $_selectedDay.',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.grey.shade600,
-                  fontStyle: FontStyle.italic,
-                ),
-              ),
             ],
           ),
         ),

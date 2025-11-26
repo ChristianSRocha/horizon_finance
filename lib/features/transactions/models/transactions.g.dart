@@ -18,7 +18,6 @@ _$TransactionImpl _$$TransactionImplFromJson(Map<String, dynamic> json) =>
           json['data'] == null ? null : DateTime.parse(json['data'] as String),
       categoriaId: (json['categoria_id'] as num?)?.toInt(),
       fixedTransaction: json['fixed_transaction'] as bool? ?? false,
-      templateId: json['template_id'] as String?,
       status: $enumDecode(_$TransactionStatusEnumMap, json['status']),
       dataCriacao: DateTime.parse(json['data_criacao'] as String),
     );
@@ -34,7 +33,6 @@ Map<String, dynamic> _$$TransactionImplToJson(_$TransactionImpl instance) =>
       'data': instance.data?.toIso8601String(),
       'categoria_id': instance.categoriaId,
       'fixed_transaction': instance.fixedTransaction,
-      'template_id': instance.templateId,
       'status': _$TransactionStatusEnumMap[instance.status]!,
       'data_criacao': instance.dataCriacao.toIso8601String(),
     };
