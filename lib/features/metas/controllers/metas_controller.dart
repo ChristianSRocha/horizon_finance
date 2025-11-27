@@ -49,6 +49,27 @@ class MetasController extends _$MetasController {
    
       ref.invalidateSelf();
       await future; 
+
+    } catch (e, st) {
+      state = AsyncValue.error(e, st);
+    }
+  }
+
+  Future<void> editarMeta(Meta metaAtualizada) async {
+    state = const AsyncValue.loading();
+    try {
+      await ref.read(metasRepositoryProvider).atualizarMeta(metaAtualizada);
+      ref.invalidateSelf(); // Recarrega a lista
+    } catch (e, st) {
+      state = AsyncValue.error(e, st);
+    }
+  }
+
+  Future<void> excluirMeta(String id) async {
+    state = const AsyncValue.loading();
+    try {
+      await ref.read(metasRepositoryProvider).deletarMeta(id);
+      ref.invalidateSelf(); // Recarrega a lista
     } catch (e, st) {
       state = AsyncValue.error(e, st);
     }
