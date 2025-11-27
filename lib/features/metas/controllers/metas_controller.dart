@@ -24,6 +24,7 @@ class MetasController extends _$MetasController {
     required String nome,
     required double valorTotal,
     required DateTime dataFinal,
+    String? descricao,
   }) async {
     final userId = Supabase.instance.client.auth.currentUser?.id;
     if (userId == null) return;
@@ -36,6 +37,7 @@ class MetasController extends _$MetasController {
         id: const Uuid().v4(),
         usuarioId: userId,
         nome: nome,
+        descricao: descricao,
         valorTotal: valorTotal,
         valorAtual: 0.0, 
         dataFinal: dataFinal,
