@@ -1,15 +1,14 @@
--- 1. Cria a tabela (caso não exista)
 CREATE TABLE IF NOT EXISTS metas (
   id uuid PRIMARY KEY,
   usuario_id uuid REFERENCES auth.users NOT NULL,
   nome text NOT NULL,
+  descricao text NOT NULL,
   valor_total decimal(10,2) NOT NULL,
   valor_atual decimal(10,2) NOT NULL DEFAULT 0,
   data_final timestamp,
   data_criacao timestamp DEFAULT current_timestamp
 );
 
-Habilita RLS (Row Level Security) 
 ALTER TABLE metas ENABLE ROW LEVEL SECURITY;
 
 permitir que o usuário veja APENAS as próprias metas
