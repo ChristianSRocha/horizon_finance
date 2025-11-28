@@ -1,28 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:go_router/go_router.dart';
-import 'package:horizon_finance/models/financial_goal.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:horizon_finance/features/metas/controllers/metas_controller.dart';
 
-class GoalFormScreen extends StatefulWidget {
+class GoalFormScreen extends ConsumerStatefulWidget {
   const GoalFormScreen({super.key});
 
   @override
-  State<GoalFormScreen> createState() => _GoalFormScreenState();
+  ConsumerState<GoalFormScreen> createState() => _GoalFormScreenState();
 }
 
-class _GoalFormScreenState extends State<GoalFormScreen> {
+class _GoalFormScreenState extends ConsumerState<GoalFormScreen> {
   final _formKey = GlobalKey<FormState>();
   
- 
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _amountController = TextEditingController();
-  final TextEditingController _descriptionController = TextEditingController();
+  final TextEditingController _descriptionController = TextEditingController(); // Opcional: mantive visualmente, mas não estamos salvando no model simplificado
 
- 
   DateTime _selectedDate = DateTime.now().add(const Duration(days: 365));
-  GoalType _selectedGoalType = GoalType.savings; 
-  
   final Color _color = const Color(0xFF0D47A1); 
+
   @override
   void dispose() {
     _nameController.dispose();
@@ -31,8 +29,6 @@ class _GoalFormScreenState extends State<GoalFormScreen> {
     super.dispose();
   }
 
-  
-  
   double _parseValue(String text) {
     if (text.isEmpty) return 0.0;
     String cleanValue = text.replaceAll(RegExp(r'[^\d,\.]'), '').replaceAll('.', '').replaceAll(',', '.'); 
@@ -54,7 +50,6 @@ class _GoalFormScreenState extends State<GoalFormScreen> {
       initialDate: _selectedDate,
       firstDate: DateTime.now(),
       lastDate: DateTime(2050),
-     
       builder: (context, child) {
         return Theme(
           data: ThemeData.light().copyWith(
@@ -69,39 +64,26 @@ class _GoalFormScreenState extends State<GoalFormScreen> {
     }
   }
 
-  
-  
-  void _saveGoal() {
+  Future<void> _saveGoal() async {
     if (!_formKey.currentState!.validate()) return;
     
     final valor = _parseValue(_amountController.text);
     if (valor <= 0) return;
 
-    
-    final newGoal = FinancialGoal(
-      id: DateTime.now().millisecondsSinceEpoch.toString(), 
-      userId: '', 
-      name: _nameController.text.trim(),
-      description: _descriptionController.text.trim(),
-      targetAmount: valor,
-      currentAmount: 0.0, 
-      targetDate: _selectedDate,
-      type: _selectedGoalType,
-      status: GoalStatus.active,
-      createdAt: DateTime.now(),
-      updatedAt: DateTime.now(),
+    // Chamada simplificada sem 'type'
+    await ref.read(metasControllerProvider.notifier).adicionarMeta(
+      nome: _nameController.text.trim(),
+      valorTotal: valor,
+      dataFinal: _selectedDate,
     );
 
-    
-    print("META PRONTA PARA ENVIO: ${newGoal.toJson()}");
-
-    
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Meta criada! (Integração pendente)')),
-    );
-    context.pop(); 
+    if (mounted) {
+       ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Meta salva com sucesso!')),
+      );
+      context.pop();
+    }
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -121,20 +103,7 @@ class _GoalFormScreenState extends State<GoalFormScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-             
-              DropdownButtonFormField<GoalType>(
-                value: _selectedGoalType,
-                decoration: _inputDecoration('Tipo de Meta', Icons.flag_outlined),
-                items: GoalType.values.map((type) {
-                  return DropdownMenuItem(
-                    value: type,
-                    child: Text(_getGoalTypeName(type)),
-                  );
-                }).toList(),
-                onChanged: (val) => setState(() => _selectedGoalType = val!),
-              ),
-              const SizedBox(height: 20),
-
+              // REMOVIDO: Dropdown de GoalType
               
               TextFormField(
                 controller: _nameController,
@@ -143,13 +112,11 @@ class _GoalFormScreenState extends State<GoalFormScreen> {
               ),
               const SizedBox(height: 20),
 
-             
               TextFormField(
                 controller: _amountController,
                 keyboardType: TextInputType.number,
                 decoration: _inputDecoration('Valor Alvo (R\$)', Icons.attach_money),
                 onChanged: (v) {
-                  
                   final formatted = _formatCurrency(v);
                   if (formatted != v) {
                     _amountController.value = TextEditingValue(
@@ -162,7 +129,6 @@ class _GoalFormScreenState extends State<GoalFormScreen> {
               ),
               const SizedBox(height: 20),
 
-              
               TextFormField(
                 readOnly: true,
                 onTap: () => _selectDate(context),
@@ -173,7 +139,6 @@ class _GoalFormScreenState extends State<GoalFormScreen> {
               ),
               const SizedBox(height: 30),
 
-             
               TextFormField(
                 controller: _descriptionController,
                 maxLines: 3,
@@ -181,7 +146,6 @@ class _GoalFormScreenState extends State<GoalFormScreen> {
               ),
               const SizedBox(height: 40),
 
-              
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
@@ -212,15 +176,5 @@ class _GoalFormScreenState extends State<GoalFormScreen> {
         borderSide: BorderSide(color: _color, width: 2),
       ),
     );
-  }
-
-  String _getGoalTypeName(GoalType type) {
-    switch (type) {
-      case GoalType.savings: return 'Poupança';
-      case GoalType.debt: return 'Quitar Dívidas';
-      case GoalType.investment: return 'Investimento';
-      case GoalType.emergency: return 'Reserva de Emergência';
-      case GoalType.other: return 'Outro';
-    }
   }
 }

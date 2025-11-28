@@ -1,0 +1,25 @@
+-- 1. Cria a tabela (caso não exista)
+CREATE TABLE IF NOT EXISTS metas (
+  id uuid PRIMARY KEY,
+  usuario_id uuid REFERENCES auth.users NOT NULL,
+  nome text NOT NULL,
+  valor_total decimal(10,2) NOT NULL,
+  valor_atual decimal(10,2) NOT NULL DEFAULT 0,
+  data_final timestamp,
+  data_criacao timestamp DEFAULT current_timestamp
+);
+
+Habilita RLS (Row Level Security) 
+ALTER TABLE metas ENABLE ROW LEVEL SECURITY;
+
+permitir que o usuário veja APENAS as próprias metas
+CREATE POLICY "Usuários podem ver suas próprias metas" 
+ON metas FOR SELECT 
+USING (auth.uid() = usuario_id);
+
+create policy "Users can select own metas" on metas for select using (auth.uid() = usuario_id);
+create policy "Users can insert own metas" on metas for insert with check (auth.uid() = usuario_id);
+create policy "Users can update own metas" on metas for update using (auth.uid() = usuario_id);
+create policy "Users can delete own metas" on metas for delete using (auth.uid() = usuario_id);
+
+
