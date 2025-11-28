@@ -4,7 +4,6 @@ import 'package:go_router/go_router.dart';
 import 'package:horizon_finance/features/auth/services/auth_service.dart';
 import 'package:horizon_finance/features/transactions/services/transaction_service.dart';
 import 'package:horizon_finance/features/transactions/models/transactions.dart';
-import 'package:intl/intl.dart';
 import 'dart:developer' as developer;
 
 class DespesasFixasScreen extends ConsumerStatefulWidget {

@@ -24,13 +24,17 @@ class GoalsScreen extends ConsumerWidget {
         elevation: 0,
         centerTitle: true,
       ),
-      floatingActionButton: FloatingActionButton(
+      floatingActionButton: FloatingActionButton.extended(
         onPressed: () => context.push('/goals/add'),
         backgroundColor: primaryBlue,
-        child: const Icon(Icons.add, color: Colors.white),
+        icon: const Icon(Icons.flag_outlined, color: Colors.white),
+        label: const Text(
+          "Nova meta",
+          style: TextStyle(color: Colors.white),
+        ),
       ),
       bottomNavigationBar: BottomNavMenu(
-        currentIndex: 2,
+        currentIndex: 3,
         primaryColor: primaryBlue,
       ),
 
@@ -278,12 +282,6 @@ class GoalsScreen extends ConsumerWidget {
               'Você ainda não tem metas cadastradas.',
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 18, color: Colors.grey),
-            ),
-            const SizedBox(height: 10),
-            Text(
-              'Use o botão "+" para adicionar sua primeira meta!',
-              textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 16, color: primaryColor),
             ),
           ],
         ),

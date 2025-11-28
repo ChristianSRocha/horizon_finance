@@ -31,7 +31,7 @@ void main() async {
           dotenv.env['GEMINI_API_KEY']!,
         ),
       ],
-      child: HorizonsFinanceApp(),
+      child: const HorizonsFinanceApp(),
     ),
   );
 }
