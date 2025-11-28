@@ -12,9 +12,11 @@ class Meta with _$Meta {
     required String id,
     required String usuarioId,
     required String nome, 
+    String? descricao,
     required double valorTotal,
     required double valorAtual,
     DateTime? dataFinal,
+
     required DateTime dataCriacao,
   }) = _Meta;
 

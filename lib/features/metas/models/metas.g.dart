@@ -10,6 +10,7 @@ _$MetaImpl _$$MetaImplFromJson(Map<String, dynamic> json) => _$MetaImpl(
       id: json['id'] as String,
       usuarioId: json['usuario_id'] as String,
       nome: json['nome'] as String,
+      descricao: json['descricao'] as String?,
       valorTotal: (json['valor_total'] as num).toDouble(),
       valorAtual: (json['valor_atual'] as num).toDouble(),
       dataFinal: json['data_final'] == null
@@ -23,6 +24,7 @@ Map<String, dynamic> _$$MetaImplToJson(_$MetaImpl instance) =>
       'id': instance.id,
       'usuario_id': instance.usuarioId,
       'nome': instance.nome,
+      'descricao': instance.descricao,
       'valor_total': instance.valorTotal,
       'valor_atual': instance.valorAtual,
       'data_final': instance.dataFinal?.toIso8601String(),

@@ -2,7 +2,7 @@ CREATE TABLE IF NOT EXISTS metas (
   id uuid PRIMARY KEY,
   usuario_id uuid REFERENCES auth.users NOT NULL,
   nome text NOT NULL,
-  descricao text NOT NULL,
+  descricao text,
   valor_total decimal(10,2) NOT NULL,
   valor_atual decimal(10,2) NOT NULL DEFAULT 0,
   data_final timestamp,
@@ -10,11 +10,6 @@ CREATE TABLE IF NOT EXISTS metas (
 );
 
 ALTER TABLE metas ENABLE ROW LEVEL SECURITY;
-
-permitir que o usuário veja APENAS as próprias metas
-CREATE POLICY "Usuários podem ver suas próprias metas" 
-ON metas FOR SELECT 
-USING (auth.uid() = usuario_id);
 
 create policy "Users can select own metas" on metas for select using (auth.uid() = usuario_id);
 create policy "Users can insert own metas" on metas for insert with check (auth.uid() = usuario_id);

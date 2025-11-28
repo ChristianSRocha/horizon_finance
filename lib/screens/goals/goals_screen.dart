@@ -49,6 +49,7 @@ class GoalsScreen extends ConsumerWidget {
                 // Mapeando seu Model 'Meta' para o layout
                 return _buildGoalCard(
                   goalName: meta.nome,
+                  goalDescription: meta.descricao,
                   currentAmount: meta.valorAtual,
                   targetAmount: meta.valorTotal,
                   primaryColor: primaryBlue,
@@ -65,6 +66,7 @@ class GoalsScreen extends ConsumerWidget {
   // Ajustei levemente para receber os dados primitivos ou o objeto Meta novo
   Widget _buildGoalCard({
     required String goalName,
+    String? goalDescription,
     required double currentAmount,
     required double targetAmount,
     required Color primaryColor,
@@ -87,7 +89,18 @@ class GoalsScreen extends ConsumerWidget {
               goalName,
               style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF424242)),
             ),
-            const SizedBox(height: 10),
+
+            if (goalDescription != null && goalDescription.isNotEmpty) ...[
+              const SizedBox(height: 4),
+              Text(
+                goalDescription,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+              ),
+            ],
+
+            const SizedBox(height: 15),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -105,7 +118,7 @@ class GoalsScreen extends ConsumerWidget {
             ClipRRect(
               borderRadius: BorderRadius.circular(5),
               child: LinearProgressIndicator(
-                value: progress.clamp(0.0, 1.0), // Proteção visual
+                value: progress.clamp(0.0, 1.0),
                 backgroundColor: Colors.grey.shade300,
                 color: accentColor,
                 minHeight: 12,

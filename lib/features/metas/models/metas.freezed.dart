@@ -23,6 +23,7 @@ mixin _$Meta {
   String get id => throw _privateConstructorUsedError;
   String get usuarioId => throw _privateConstructorUsedError;
   String get nome => throw _privateConstructorUsedError;
+  String? get descricao => throw _privateConstructorUsedError;
   double get valorTotal => throw _privateConstructorUsedError;
   double get valorAtual => throw _privateConstructorUsedError;
   DateTime? get dataFinal => throw _privateConstructorUsedError;
@@ -46,6 +47,7 @@ abstract class $MetaCopyWith<$Res> {
       {String id,
       String usuarioId,
       String nome,
+      String? descricao,
       double valorTotal,
       double valorAtual,
       DateTime? dataFinal,
@@ -70,6 +72,7 @@ class _$MetaCopyWithImpl<$Res, $Val extends Meta>
     Object? id = null,
     Object? usuarioId = null,
     Object? nome = null,
+    Object? descricao = freezed,
     Object? valorTotal = null,
     Object? valorAtual = null,
     Object? dataFinal = freezed,
@@ -88,6 +91,10 @@ class _$MetaCopyWithImpl<$Res, $Val extends Meta>
           ? _value.nome
           : nome // ignore: cast_nullable_to_non_nullable
               as String,
+      descricao: freezed == descricao
+          ? _value.descricao
+          : descricao // ignore: cast_nullable_to_non_nullable
+              as String?,
       valorTotal: null == valorTotal
           ? _value.valorTotal
           : valorTotal // ignore: cast_nullable_to_non_nullable
@@ -119,6 +126,7 @@ abstract class _$$MetaImplCopyWith<$Res> implements $MetaCopyWith<$Res> {
       {String id,
       String usuarioId,
       String nome,
+      String? descricao,
       double valorTotal,
       double valorAtual,
       DateTime? dataFinal,
@@ -140,6 +148,7 @@ class __$$MetaImplCopyWithImpl<$Res>
     Object? id = null,
     Object? usuarioId = null,
     Object? nome = null,
+    Object? descricao = freezed,
     Object? valorTotal = null,
     Object? valorAtual = null,
     Object? dataFinal = freezed,
@@ -158,6 +167,10 @@ class __$$MetaImplCopyWithImpl<$Res>
           ? _value.nome
           : nome // ignore: cast_nullable_to_non_nullable
               as String,
+      descricao: freezed == descricao
+          ? _value.descricao
+          : descricao // ignore: cast_nullable_to_non_nullable
+              as String?,
       valorTotal: null == valorTotal
           ? _value.valorTotal
           : valorTotal // ignore: cast_nullable_to_non_nullable
@@ -186,6 +199,7 @@ class _$MetaImpl implements _Meta {
       {required this.id,
       required this.usuarioId,
       required this.nome,
+      this.descricao,
       required this.valorTotal,
       required this.valorAtual,
       this.dataFinal,
@@ -201,6 +215,8 @@ class _$MetaImpl implements _Meta {
   @override
   final String nome;
   @override
+  final String? descricao;
+  @override
   final double valorTotal;
   @override
   final double valorAtual;
@@ -211,7 +227,7 @@ class _$MetaImpl implements _Meta {
 
   @override
   String toString() {
-    return 'Meta(id: $id, usuarioId: $usuarioId, nome: $nome, valorTotal: $valorTotal, valorAtual: $valorAtual, dataFinal: $dataFinal, dataCriacao: $dataCriacao)';
+    return 'Meta(id: $id, usuarioId: $usuarioId, nome: $nome, descricao: $descricao, valorTotal: $valorTotal, valorAtual: $valorAtual, dataFinal: $dataFinal, dataCriacao: $dataCriacao)';
   }
 
   @override
@@ -223,6 +239,8 @@ class _$MetaImpl implements _Meta {
             (identical(other.usuarioId, usuarioId) ||
                 other.usuarioId == usuarioId) &&
             (identical(other.nome, nome) || other.nome == nome) &&
+            (identical(other.descricao, descricao) ||
+                other.descricao == descricao) &&
             (identical(other.valorTotal, valorTotal) ||
                 other.valorTotal == valorTotal) &&
             (identical(other.valorAtual, valorAtual) ||
@@ -235,8 +253,8 @@ class _$MetaImpl implements _Meta {
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(runtimeType, id, usuarioId, nome, valorTotal,
-      valorAtual, dataFinal, dataCriacao);
+  int get hashCode => Object.hash(runtimeType, id, usuarioId, nome, descricao,
+      valorTotal, valorAtual, dataFinal, dataCriacao);
 
   /// Create a copy of Meta
   /// with the given fields replaced by the non-null parameter values.
@@ -259,6 +277,7 @@ abstract class _Meta implements Meta {
       {required final String id,
       required final String usuarioId,
       required final String nome,
+      final String? descricao,
       required final double valorTotal,
       required final double valorAtual,
       final DateTime? dataFinal,
@@ -272,6 +291,8 @@ abstract class _Meta implements Meta {
   String get usuarioId;
   @override
   String get nome;
+  @override
+  String? get descricao;
   @override
   double get valorTotal;
   @override

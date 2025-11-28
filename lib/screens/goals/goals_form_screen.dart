@@ -75,6 +75,7 @@ class _GoalFormScreenState extends ConsumerState<GoalFormScreen> {
       nome: _nameController.text.trim(),
       valorTotal: valor,
       dataFinal: _selectedDate,
+      descricao: _descriptionController.text.trim(),
     );
 
     if (mounted) {
