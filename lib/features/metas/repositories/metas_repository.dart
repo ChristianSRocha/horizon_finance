@@ -26,4 +26,15 @@ class MetasRepository {
   Future<void> criarMeta(Meta meta) async {
     await _client.from('metas').insert(meta.toJson());
   }
+
+  Future<void> atualizarMeta(Meta meta) async {
+    await _client
+        .from('metas')
+        .update(meta.toJson())
+        .eq('id', meta.id); // 
+  }
+
+  Future<void> deletarMeta(String metaId) async {
+    await _client.from('metas').delete().eq('id', metaId);
+  }
 }

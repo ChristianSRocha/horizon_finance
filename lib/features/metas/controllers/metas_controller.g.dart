@@ -23,7 +23,7 @@ final metasRepositoryProvider = AutoDisposeProvider<MetasRepository>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef MetasRepositoryRef = AutoDisposeProviderRef<MetasRepository>;
-String _$metasControllerHash() => r'8600116b8ec3d897568d12ee16cf798ef0ef536e';
+String _$metasControllerHash() => r'f59aa6efe8a395e89a24bbcc41a29cdc726f48e2';
 
 /// See also [MetasController].
 @ProviderFor(MetasController)
