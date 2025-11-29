@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../transactions/models/transactions.dart';
+import '../../metas/models/metas.dart';
 
 class AIInsightsRepository {
   final SupabaseClient supabase;
@@ -14,13 +15,23 @@ class AIInsightsRepository {
   });
 
 
-  Future<List<Transaction>> fetchUserTransactions(String userId) async {
+  Future<List<Transaction>>  fetchUserTransactions(String userId) async {
     final data = await supabase
         .from("transactions")
         .select()
         .eq("usuario_id", userId);
 
     return data.map<Transaction>((t) => Transaction.fromJson(t)).toList();
+  }
+
+  Future<List<Meta>> fetchUserGoals(String userId) async {
+    final data = await supabase
+        .from("metas")
+        .select()
+        .eq("usuario_id", userId)
+        .eq("Ativo", true);
+      
+    return data.map<Meta>((t) => Meta.fromJson(t)).toList();
   }
 
   Future<List<String>> getInsightsFromGemini(String prompt) async {

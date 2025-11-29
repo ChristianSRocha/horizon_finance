@@ -16,6 +16,8 @@ class Meta with _$Meta {
     required double valorTotal,
     required double valorAtual,
     DateTime? dataFinal,
+    @Default(false) bool is_concluded, 
+    @Default(true) bool ativo, 
 
     required DateTime dataCriacao,
   }) = _Meta;

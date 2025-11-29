@@ -5,15 +5,42 @@ import 'package:horizon_finance/widgets/bottom_nav_menu.dart';
 import 'package:horizon_finance/features/metas/controllers/metas_controller.dart';
 import 'package:horizon_finance/features/metas/models/metas.dart';
 
-class GoalsScreen extends ConsumerWidget {
+// Provider para buscar metas concluídas
+final metasConcluidasProvider = FutureProvider<List<Meta>>((ref) async {
+  return ref.read(metasRepositoryProvider).getConcludedMetas();
+});
+
+class GoalsScreen extends ConsumerStatefulWidget {
   const GoalsScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<GoalsScreen> createState() => _GoalsScreenState();
+}
+
+class _GoalsScreenState extends ConsumerState<GoalsScreen> with SingleTickerProviderStateMixin {
+  late TabController _tabController;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 2, vsync: this);
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final Color primaryBlue = Theme.of(context).primaryColor;
     
-    // OBTÉM O ESTADO DO RIVERPOD
+    // OBTÉM O ESTADO DAS METAS ATIVAS
     final metasState = ref.watch(metasControllerProvider);
+    
+    // OBTÉM O ESTADO DAS METAS CONCLUÍDAS
+    final metasConcluidasState = ref.watch(metasConcluidasProvider);
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -23,6 +50,16 @@ class GoalsScreen extends ConsumerWidget {
         backgroundColor: Colors.white,
         elevation: 0,
         centerTitle: true,
+        bottom: TabBar(
+          controller: _tabController,
+          labelColor: primaryBlue,
+          unselectedLabelColor: Colors.grey,
+          indicatorColor: primaryBlue,
+          tabs: const [
+            Tab(text: 'Ativas'),
+            Tab(text: 'Concluídas'),
+          ],
+        ),
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => context.push('/goals/add'),
@@ -37,42 +74,74 @@ class GoalsScreen extends ConsumerWidget {
         currentIndex: 3,
         primaryColor: primaryBlue,
       ),
-
-      body: metasState.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (err, stack) => Center(child: Text('Erro: $err')),
-        data: (goals) {
-          if (goals.isEmpty) {
-            return _buildEmptyState(context, primaryBlue);
-          }
+      body: TabBarView(
+        controller: _tabController,
+        children: [
+          // ABA DE METAS ATIVAS
+          metasState.when(
+            loading: () => const Center(child: CircularProgressIndicator()),
+            error: (err, stack) => Center(child: Text('Erro: $err')),
+            data: (goals) {
+              if (goals.isEmpty) {
+                return _buildEmptyState(context, primaryBlue, 'Você ainda não tem metas cadastradas.');
+              }
+              
+              return SingleChildScrollView(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  children: goals.map((meta) {
+                    return _buildGoalCard(
+                      context: context,
+                      ref: ref,
+                      meta: meta, 
+                      primaryColor: primaryBlue,
+                      accentColor: primaryBlue.withOpacity(0.7),
+                      isConcluded: false,
+                    );
+                  }).toList(),
+                ),
+              );
+            },
+          ),
           
-          return SingleChildScrollView(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              children: goals.map((meta) {
-            
-                return _buildGoalCard(
-                  context: context,
-                  ref: ref,
-                  meta: meta, 
-                  primaryColor: primaryBlue,
-                  accentColor: primaryBlue.withOpacity(0.7),
-                );
-              }).toList(),
-            ),
-          );
-        },
+          // ABA DE METAS CONCLUÍDAS
+          metasConcluidasState.when(
+            loading: () => const Center(child: CircularProgressIndicator()),
+            error: (err, stack) => Center(child: Text('Erro: $err')),
+            data: (concludedGoals) {
+              if (concludedGoals.isEmpty) {
+                return _buildEmptyState(context, primaryBlue, 'Você ainda não concluiu nenhuma meta.');
+              }
+              
+              return SingleChildScrollView(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  children: concludedGoals.map((meta) {
+                    return _buildGoalCard(
+                      context: context,
+                      ref: ref,
+                      meta: meta, 
+                      primaryColor: primaryBlue,
+                      accentColor: primaryBlue.withOpacity(0.7),
+                      isConcluded: true,
+                    );
+                  }).toList(),
+                ),
+              );
+            },
+          ),
+        ],
       ),
     );
   }
 
- 
   Widget _buildGoalCard({
     required BuildContext context,
     required WidgetRef ref,
     required Meta meta,
     required Color primaryColor,
     required Color accentColor,
+    required bool isConcluded,
   }) {
     final double safeTargetAmount = meta.valorTotal > 0 ? meta.valorTotal : 1.0;
     final double progress = meta.valorAtual / safeTargetAmount;
@@ -84,7 +153,7 @@ class GoalsScreen extends ConsumerWidget {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       clipBehavior: Clip.antiAlias,
       child: InkWell(
-        onTap: () => _showOptionsModal(context, ref, meta),
+        onTap: isConcluded ? null : () => _showOptionsModal(context, ref, meta, isConcluded),
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Column(
@@ -94,15 +163,27 @@ class GoalsScreen extends ConsumerWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Expanded(
-                    child: Text(
-                      meta.nome,
-                      style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF424242)),
+                    child: Row(
+                      children: [
+                        if (isConcluded)
+                          Padding(
+                            padding: const EdgeInsets.only(right: 8.0),
+                            child: Icon(Icons.check_circle, color: const Color(0xFF2E7D32), size: 24),
+                          ),
+                        Expanded(
+                          child: Text(
+                            meta.nome,
+                            style: const TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF424242)),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                  Icon(Icons.more_vert, color: Colors.grey[400]), 
+                  if (!isConcluded)
+                    Icon(Icons.more_vert, color: Colors.grey[400]), 
                 ],
               ),
               if (meta.descricao != null && meta.descricao!.isNotEmpty) ...[
@@ -147,7 +228,11 @@ class GoalsScreen extends ConsumerWidget {
                 children: [
                   Text(
                     '$progressPercent% concluído',
-                    style: TextStyle(fontSize: 12, color: primaryColor),
+                    style: TextStyle(
+                      fontSize: 12, 
+                      color: isConcluded ? const Color(0xFF2E7D32) : primaryColor,
+                      fontWeight: isConcluded ? FontWeight.bold : FontWeight.normal,
+                    ),
                   ),
                 ],
               ),
@@ -158,8 +243,7 @@ class GoalsScreen extends ConsumerWidget {
     );
   }
 
- 
-  void _showOptionsModal(BuildContext context, WidgetRef ref, Meta meta) {
+  void _showOptionsModal(BuildContext context, WidgetRef ref, Meta meta, bool isConcluded) {
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
@@ -171,15 +255,17 @@ class GoalsScreen extends ConsumerWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              ListTile(
-                leading: const Icon(Icons.edit, color: Colors.blue),
-                title: const Text('Editar Meta / Adicionar Valor'),
-                onTap: () {
-                  Navigator.pop(ctx); 
-                  _showEditDialog(context, ref, meta); 
-                },
-              ),
-              const Divider(),
+              if (!isConcluded)
+                ListTile(
+                  leading: const Icon(Icons.edit, color: Colors.blue),
+                  title: const Text('Editar Meta / Adicionar Valor'),
+                  onTap: () {
+                    Navigator.pop(ctx); 
+                    _showEditDialog(context, ref, meta); 
+                  },
+                ),
+              if (!isConcluded)
+                const Divider(),
               ListTile(
                 leading: const Icon(Icons.delete, color: Colors.red),
                 title: const Text('Excluir Meta', style: TextStyle(color: Colors.red)),
@@ -194,7 +280,6 @@ class GoalsScreen extends ConsumerWidget {
       },
     );
   }
-
 
   void _showEditDialog(BuildContext context, WidgetRef ref, Meta meta) {
     final nameCtrl = TextEditingController(text: meta.nome);
@@ -234,9 +319,23 @@ class GoalsScreen extends ConsumerWidget {
                 valorAtual: novoValor,
               );
 
+              final justCompleted = !meta.is_concluded && 
+                                    novoValor >= meta.valorTotal && 
+                                    meta.valorTotal > 0;
+
               ref.read(metasControllerProvider.notifier).editarMeta(metaAtualizada);
               
               Navigator.pop(ctx);
+              
+              if (justCompleted && context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('🎉 Parabéns! Você concluiu a meta "$novoNome"!'),
+                    backgroundColor: Colors.green,
+                    duration: const Duration(seconds: 3),
+                  ),
+                );
+              }
             },
             child: const Text('Salvar'),
           ),
@@ -245,7 +344,6 @@ class GoalsScreen extends ConsumerWidget {
     );
   }
 
-  // CONFIRMAÇÃO DE EXCLUSÃO 
   void _confirmDelete(BuildContext context, WidgetRef ref, String id) {
     showDialog(
       context: context,
@@ -269,7 +367,7 @@ class GoalsScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildEmptyState(BuildContext context, Color primaryColor) {
+  Widget _buildEmptyState(BuildContext context, Color primaryColor, String message) {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32.0),
@@ -278,10 +376,10 @@ class GoalsScreen extends ConsumerWidget {
           children: [
             Icon(Icons.flag_outlined, size: 80, color: primaryColor.withOpacity(0.5)),
             const SizedBox(height: 20),
-            const Text(
-              'Você ainda não tem metas cadastradas.',
+            Text(
+              message,
               textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 18, color: Colors.grey),
+              style: const TextStyle(fontSize: 18, color: Colors.grey),
             ),
           ],
         ),

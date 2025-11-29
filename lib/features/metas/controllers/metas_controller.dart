@@ -1,3 +1,5 @@
+import 'package:horizon_finance/features/transactions/models/transactions.dart';
+import 'package:horizon_finance/features/transactions/services/transaction_service.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:uuid/uuid.dart'; 
@@ -58,7 +60,28 @@ class MetasController extends _$MetasController {
   Future<void> editarMeta(Meta metaAtualizada) async {
     state = const AsyncValue.loading();
     try {
-      await ref.read(metasRepositoryProvider).atualizarMeta(metaAtualizada);
+
+      final repo = ref.read(metasRepositoryProvider);
+      final metas = await repo.getMetas();
+      final meta = metas.firstWhere((m) => m.id == metaAtualizada.id);
+      final String goalName = meta.nome;
+      final bool isConcluded = metaAtualizada.valorAtual >= metaAtualizada.valorTotal;
+      final double remanescentValue = metaAtualizada.valorAtual - metaAtualizada.valorTotal;
+
+      if (remanescentValue > 0 && isConcluded)
+      {
+        await ref.read(TransactionServiceProvider).addTransaction(descricao: "Retorno de valor excedente da meta: '$goalName'",
+                                                                  tipo: TransactionType.receita,
+                                                                  valor: remanescentValue,
+                                                                  data: DateTime.now(),
+                                                                  categoriaId: 3,
+                                                                  fixedTransaction: false);
+      }
+      final goalStatus = metaAtualizada.copyWith(is_concluded: isConcluded,
+                                                 ativo: isConcluded ? false : metaAtualizada.ativo);
+      
+
+      await ref.read(metasRepositoryProvider).atualizarMeta(goalStatus);
       ref.invalidateSelf(); // Recarrega a lista
     } catch (e, st) {
       state = AsyncValue.error(e, st);
@@ -68,7 +91,24 @@ class MetasController extends _$MetasController {
   Future<void> excluirMeta(String id) async {
     state = const AsyncValue.loading();
     try {
-      await ref.read(metasRepositoryProvider).deletarMeta(id);
+      final repo = ref.read(metasRepositoryProvider);
+      final metas = await repo.getMetas();
+
+      final meta = metas.firstWhere((m) => m.id == id);
+      final double remanescentValue = meta.valorAtual;
+      final String goalName = meta.nome;
+
+      await repo.deletarMeta(id);
+
+      if (remanescentValue > 0)
+      {
+        await ref.read(TransactionServiceProvider).addTransaction(descricao: "Retorno de valor devido a exclusão da meta: '$goalName'",
+                                                                  tipo: TransactionType.receita,
+                                                                  valor: remanescentValue,
+                                                                  data: DateTime.now(),
+                                                                  categoriaId: 3,
+                                                                  fixedTransaction: false,);
+      }
       ref.invalidateSelf(); // Recarrega a lista
     } catch (e, st) {
       state = AsyncValue.error(e, st);

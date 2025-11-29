@@ -16,10 +16,29 @@ class MetasRepository {
         .from('metas')
         .select()
         .eq('usuario_id', userId)
+        .eq('ativo', true)
         .order('data_criacao', ascending: false);
 
 
-    return (response as List).map((e) => Meta.fromJson(e)).toList();
+    final data = List<Map<String, dynamic>>.from(response);
+    return data.map(Meta.fromJson).toList();
+  }
+
+   Future<List<Meta>> getConcludedMetas() async {
+    final userId = _client.auth.currentUser?.id;
+
+    if (userId == null) throw Exception('Usuário não autenticado');
+
+    final response = await _client
+        .from('metas')
+        .select()
+        .eq('usuario_id', userId)
+        .eq('is_concluded', true)
+        .order('data_criacao', ascending: false);
+
+
+    final data = List<Map<String, dynamic>>.from(response);
+    return data.map(Meta.fromJson).toList();
   }
 
 
@@ -34,7 +53,11 @@ class MetasRepository {
         .eq('id', meta.id); // 
   }
 
-  Future<void> deletarMeta(String metaId) async {
-    await _client.from('metas').delete().eq('id', metaId);
+  Future<void> deletarMeta(String metaId) async 
+  {
+    await _client.from('metas')
+                 .update({'ativo': false})
+                 .eq('id', metaId);
+    
   }
 }

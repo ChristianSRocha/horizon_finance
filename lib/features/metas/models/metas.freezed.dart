@@ -27,6 +27,8 @@ mixin _$Meta {
   double get valorTotal => throw _privateConstructorUsedError;
   double get valorAtual => throw _privateConstructorUsedError;
   DateTime? get dataFinal => throw _privateConstructorUsedError;
+  bool get is_concluded => throw _privateConstructorUsedError;
+  bool get ativo => throw _privateConstructorUsedError;
   DateTime get dataCriacao => throw _privateConstructorUsedError;
 
   /// Serializes this Meta to a JSON map.
@@ -51,6 +53,8 @@ abstract class $MetaCopyWith<$Res> {
       double valorTotal,
       double valorAtual,
       DateTime? dataFinal,
+      bool is_concluded,
+      bool ativo,
       DateTime dataCriacao});
 }
 
@@ -76,6 +80,8 @@ class _$MetaCopyWithImpl<$Res, $Val extends Meta>
     Object? valorTotal = null,
     Object? valorAtual = null,
     Object? dataFinal = freezed,
+    Object? is_concluded = null,
+    Object? ativo = null,
     Object? dataCriacao = null,
   }) {
     return _then(_value.copyWith(
@@ -107,6 +113,14 @@ class _$MetaCopyWithImpl<$Res, $Val extends Meta>
           ? _value.dataFinal
           : dataFinal // ignore: cast_nullable_to_non_nullable
               as DateTime?,
+      is_concluded: null == is_concluded
+          ? _value.is_concluded
+          : is_concluded // ignore: cast_nullable_to_non_nullable
+              as bool,
+      ativo: null == ativo
+          ? _value.ativo
+          : ativo // ignore: cast_nullable_to_non_nullable
+              as bool,
       dataCriacao: null == dataCriacao
           ? _value.dataCriacao
           : dataCriacao // ignore: cast_nullable_to_non_nullable
@@ -130,6 +144,8 @@ abstract class _$$MetaImplCopyWith<$Res> implements $MetaCopyWith<$Res> {
       double valorTotal,
       double valorAtual,
       DateTime? dataFinal,
+      bool is_concluded,
+      bool ativo,
       DateTime dataCriacao});
 }
 
@@ -152,6 +168,8 @@ class __$$MetaImplCopyWithImpl<$Res>
     Object? valorTotal = null,
     Object? valorAtual = null,
     Object? dataFinal = freezed,
+    Object? is_concluded = null,
+    Object? ativo = null,
     Object? dataCriacao = null,
   }) {
     return _then(_$MetaImpl(
@@ -183,6 +201,14 @@ class __$$MetaImplCopyWithImpl<$Res>
           ? _value.dataFinal
           : dataFinal // ignore: cast_nullable_to_non_nullable
               as DateTime?,
+      is_concluded: null == is_concluded
+          ? _value.is_concluded
+          : is_concluded // ignore: cast_nullable_to_non_nullable
+              as bool,
+      ativo: null == ativo
+          ? _value.ativo
+          : ativo // ignore: cast_nullable_to_non_nullable
+              as bool,
       dataCriacao: null == dataCriacao
           ? _value.dataCriacao
           : dataCriacao // ignore: cast_nullable_to_non_nullable
@@ -203,6 +229,8 @@ class _$MetaImpl implements _Meta {
       required this.valorTotal,
       required this.valorAtual,
       this.dataFinal,
+      this.is_concluded = false,
+      this.ativo = true,
       required this.dataCriacao});
 
   factory _$MetaImpl.fromJson(Map<String, dynamic> json) =>
@@ -223,11 +251,17 @@ class _$MetaImpl implements _Meta {
   @override
   final DateTime? dataFinal;
   @override
+  @JsonKey()
+  final bool is_concluded;
+  @override
+  @JsonKey()
+  final bool ativo;
+  @override
   final DateTime dataCriacao;
 
   @override
   String toString() {
-    return 'Meta(id: $id, usuarioId: $usuarioId, nome: $nome, descricao: $descricao, valorTotal: $valorTotal, valorAtual: $valorAtual, dataFinal: $dataFinal, dataCriacao: $dataCriacao)';
+    return 'Meta(id: $id, usuarioId: $usuarioId, nome: $nome, descricao: $descricao, valorTotal: $valorTotal, valorAtual: $valorAtual, dataFinal: $dataFinal, is_concluded: $is_concluded, ativo: $ativo, dataCriacao: $dataCriacao)';
   }
 
   @override
@@ -247,6 +281,9 @@ class _$MetaImpl implements _Meta {
                 other.valorAtual == valorAtual) &&
             (identical(other.dataFinal, dataFinal) ||
                 other.dataFinal == dataFinal) &&
+            (identical(other.is_concluded, is_concluded) ||
+                other.is_concluded == is_concluded) &&
+            (identical(other.ativo, ativo) || other.ativo == ativo) &&
             (identical(other.dataCriacao, dataCriacao) ||
                 other.dataCriacao == dataCriacao));
   }
@@ -254,7 +291,7 @@ class _$MetaImpl implements _Meta {
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(runtimeType, id, usuarioId, nome, descricao,
-      valorTotal, valorAtual, dataFinal, dataCriacao);
+      valorTotal, valorAtual, dataFinal, is_concluded, ativo, dataCriacao);
 
   /// Create a copy of Meta
   /// with the given fields replaced by the non-null parameter values.
@@ -281,6 +318,8 @@ abstract class _Meta implements Meta {
       required final double valorTotal,
       required final double valorAtual,
       final DateTime? dataFinal,
+      final bool is_concluded,
+      final bool ativo,
       required final DateTime dataCriacao}) = _$MetaImpl;
 
   factory _Meta.fromJson(Map<String, dynamic> json) = _$MetaImpl.fromJson;
@@ -299,6 +338,10 @@ abstract class _Meta implements Meta {
   double get valorAtual;
   @override
   DateTime? get dataFinal;
+  @override
+  bool get is_concluded;
+  @override
+  bool get ativo;
   @override
   DateTime get dataCriacao;
 

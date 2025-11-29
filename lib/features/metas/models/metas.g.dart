@@ -16,6 +16,8 @@ _$MetaImpl _$$MetaImplFromJson(Map<String, dynamic> json) => _$MetaImpl(
       dataFinal: json['data_final'] == null
           ? null
           : DateTime.parse(json['data_final'] as String),
+      is_concluded: json['is_concluded'] as bool? ?? false,
+      ativo: json['ativo'] as bool? ?? true,
       dataCriacao: DateTime.parse(json['data_criacao'] as String),
     );
 
@@ -28,5 +30,7 @@ Map<String, dynamic> _$$MetaImplToJson(_$MetaImpl instance) =>
       'valor_total': instance.valorTotal,
       'valor_atual': instance.valorAtual,
       'data_final': instance.dataFinal?.toIso8601String(),
+      'is_concluded': instance.is_concluded,
+      'ativo': instance.ativo,
       'data_criacao': instance.dataCriacao.toIso8601String(),
     };
