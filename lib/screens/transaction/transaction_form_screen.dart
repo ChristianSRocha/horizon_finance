@@ -31,19 +31,19 @@ class TransactionFormScreen extends ConsumerStatefulWidget {
       _TransactionFormScreenState();
 }
 
-class _TransactionFormScreenState extends ConsumerState<TransactionFormScreen> {
+class _TransactionFormScreenState
+    extends ConsumerState<TransactionFormScreen> {
   late TransactionType _type;
   final _formKey = GlobalKey<FormState>();
 
   final TextEditingController _valueController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
-  final TextEditingController _dateController = TextEditingController();  // <-- ADICIONADO
+  final TextEditingController _dateController = TextEditingController();
 
   DateTime _selectedDate = DateTime.now();
   int? _selectedCategoryId;
   bool _isLoading = false;
 
-  // --- CATEGORIAS ---
   static final List<Category> _allCategories = [
     Category(id: 1, nome: 'Salário', tipo: 'RECEITA'),
     Category(id: 2, nome: 'Renda Extra (Freela)', tipo: 'RECEITA'),
@@ -95,7 +95,6 @@ class _TransactionFormScreenState extends ConsumerState<TransactionFormScreen> {
       _selectedCategoryId = t.categoriaId;
     }
 
-    // Preenche a data no campo
     _dateController.text = DateFormat('dd/MM/yyyy').format(_selectedDate);
   }
 
@@ -171,9 +170,8 @@ class _TransactionFormScreenState extends ConsumerState<TransactionFormScreen> {
       lastDate: DateTime(2100),
       builder: (context, child) => Theme(
         data: ThemeData.light().copyWith(
-          colorScheme: ColorScheme.light(
-            primary: Theme.of(context).primaryColor,
-          ),
+          colorScheme:
+              ColorScheme.light(primary: Theme.of(context).primaryColor),
         ),
         child: child!,
       ),
@@ -194,26 +192,24 @@ class _TransactionFormScreenState extends ConsumerState<TransactionFormScreen> {
         ? const Color(0xFF2E7D32)
         : const Color(0xFFE53935);
 
-    final title = widget.isEditing
-        ? 'Editar ${_type == TransactionType.receita ? "Receita" : "Despesa"}'
-        : 'Nova ${_type == TransactionType.receita ? "Receita" : "Despesa"}';
-
     return Scaffold(
       backgroundColor: Colors.white,
 
       appBar: AppBar(
-        automaticallyImplyLeading: false, // sem botão de voltar
+        automaticallyImplyLeading: false,
         title: Text(
-          title,
-          style: TextStyle(color: typeColor, fontWeight: FontWeight.bold),
+          "Minhas Transações",
+          style: TextStyle(
+            color: Theme.of(context).primaryColor,
+            fontWeight: FontWeight.bold,
+          ),
         ),
         backgroundColor: Colors.white,
         elevation: 0,
         centerTitle: true,
-        iconTheme: IconThemeData(color: typeColor),
-        actions: widget.isEditing ? null : [
-          _buildTypeSwapButton(typeColor),
-        ],
+        iconTheme: IconThemeData(
+          color: Theme.of(context).primaryColor,
+        ),
       ),
 
       bottomNavigationBar: BottomNavMenu(
@@ -228,7 +224,8 @@ class _TransactionFormScreenState extends ConsumerState<TransactionFormScreen> {
             child: Card(
               elevation: 2,
               shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12)),
+                borderRadius: BorderRadius.circular(12),
+              ),
               child: Padding(
                 padding: const EdgeInsets.all(16),
                 child: Form(
@@ -236,14 +233,37 @@ class _TransactionFormScreenState extends ConsumerState<TransactionFormScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      Text(
-                        'Detalhes da Transação',
-                        style: TextStyle(
-                          fontSize: 18,
-                          color: typeColor,
-                          fontWeight: FontWeight.bold,
+                      // BANNER BOTÃO RECEITA/DESPESA
+                      GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            _type = _type == TransactionType.receita
+                                ? TransactionType.despesa
+                                : TransactionType.receita;
+                            _selectedCategoryId = null;
+                          });
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          decoration: BoxDecoration(
+                            color: typeColor.withOpacity(0.12),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Center(
+                            child: Text(
+                              _type == TransactionType.receita
+                                  ? "RECEITA"
+                                  : "DESPESA",
+                              style: TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                                color: typeColor,
+                              ),
+                            ),
+                          ),
                         ),
                       ),
+
                       const SizedBox(height: 16),
 
                       _buildValueField(typeColor),
@@ -260,9 +280,7 @@ class _TransactionFormScreenState extends ConsumerState<TransactionFormScreen> {
 
                       _buildActionButton(
                         typeColor,
-                        widget.isEditing
-                            ? 'Salvar Alterações'
-                            : 'Registrar',
+                        widget.isEditing ? 'Salvar Alterações' : 'Registrar',
                       ),
 
                       if (widget.isEditing) _buildDeleteButton(),
@@ -287,30 +305,8 @@ class _TransactionFormScreenState extends ConsumerState<TransactionFormScreen> {
   }
 
   // ----------------------------------------------
-  // WIDGETS
+  // CAMPOS / WIDGETS AUXILIARES
   // ----------------------------------------------
-
-  Widget _buildTypeSwapButton(Color color) {
-    final isReceita = _type == TransactionType.receita;
-    return TextButton.icon(
-      icon: Icon(
-        isReceita ? Icons.arrow_downward : Icons.arrow_upward,
-        color: color,
-      ),
-      label: Text(
-        isReceita ? 'Despesa' : 'Receita',
-        style: TextStyle(color: color),
-      ),
-      onPressed: () {
-        setState(() {
-          _type = isReceita
-              ? TransactionType.despesa
-              : TransactionType.receita;
-          _selectedCategoryId = null;
-        });
-      },
-    );
-  }
 
   Widget _buildValueField(Color color) {
     return TextFormField(
@@ -370,8 +366,7 @@ class _TransactionFormScreenState extends ConsumerState<TransactionFormScreen> {
           )
           .toList(),
       onChanged: (v) => setState(() => _selectedCategoryId = v),
-      validator: (v) =>
-          v == null ? 'Selecione a categoria.' : null,
+      validator: (v) => v == null ? 'Selecione a categoria.' : null,
     );
   }
 
@@ -383,10 +378,6 @@ class _TransactionFormScreenState extends ConsumerState<TransactionFormScreen> {
         labelText: 'Descrição (Opcional)',
         prefixIcon: Icon(Icons.description_outlined, color: color),
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
-          borderSide: BorderSide(color: color, width: 2),
-        ),
       ),
     );
   }
@@ -399,10 +390,6 @@ class _TransactionFormScreenState extends ConsumerState<TransactionFormScreen> {
         labelText: 'Data',
         prefixIcon: Icon(Icons.calendar_today, color: color),
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
-          borderSide: BorderSide(color: color, width: 2),
-        ),
       ),
       onTap: () => _selectDate(context),
     );
