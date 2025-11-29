@@ -6,7 +6,6 @@ import 'package:horizon_finance/features/transactions/models/transactions.dart';
 import 'package:horizon_finance/features/transactions/services/transaction_service.dart';
 import 'package:horizon_finance/widgets/bottom_nav_menu.dart';
 
-// Modelo para categorias
 class Category {
   final int id;
   final String nome;
@@ -36,25 +35,21 @@ class _TransactionFormScreenState extends ConsumerState<TransactionFormScreen> {
   late TransactionType _type;
   final _formKey = GlobalKey<FormState>();
 
-  // Controllers
   final TextEditingController _valueController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
+  final TextEditingController _dateController = TextEditingController();  // <-- ADICIONADO
 
-  // Estados
   DateTime _selectedDate = DateTime.now();
   int? _selectedCategoryId;
   bool _isLoading = false;
 
-  // Mapeamento completo das categorias
+  // --- CATEGORIAS ---
   static final List<Category> _allCategories = [
-    // RECEITAS
     Category(id: 1, nome: 'Salário', tipo: 'RECEITA'),
     Category(id: 2, nome: 'Renda Extra (Freela)', tipo: 'RECEITA'),
     Category(id: 3, nome: 'Investimentos', tipo: 'RECEITA'),
     Category(id: 4, nome: 'Presentes', tipo: 'RECEITA'),
     Category(id: 5, nome: 'Outras Receitas', tipo: 'RECEITA'),
-
-    // DESPESAS
     Category(id: 6, nome: 'Aluguel', tipo: 'DESPESA'),
     Category(id: 7, nome: 'Financiamento', tipo: 'DESPESA'),
     Category(id: 8, nome: 'Condomínio', tipo: 'DESPESA'),
@@ -78,10 +73,9 @@ class _TransactionFormScreenState extends ConsumerState<TransactionFormScreen> {
     Category(id: 26, nome: 'Outras Despesas', tipo: 'DESPESA'),
   ];
 
-  // Filtra categorias por tipo
   List<Category> get _currentCategories {
-    final tipoString = _type == TransactionType.receita ? 'RECEITA' : 'DESPESA';
-    return _allCategories.where((cat) => cat.tipo == tipoString).toList();
+    final tipo = _type == TransactionType.receita ? 'RECEITA' : 'DESPESA';
+    return _allCategories.where((c) => c.tipo == tipo).toList();
   }
 
   @override
@@ -89,89 +83,61 @@ class _TransactionFormScreenState extends ConsumerState<TransactionFormScreen> {
     super.initState();
     _type = widget.initialType;
 
-    // Se estiver editando, preenche os campos
     if (widget.isEditing && widget.transaction != null) {
       final t = widget.transaction!;
       _descriptionController.text = t.descricao;
+      _valueController.text =
+          NumberFormat.currency(locale: 'pt_BR', symbol: '')
+              .format(t.valor)
+              .trim();
       _selectedDate = t.data ?? DateTime.now();
       _type = t.tipo;
       _selectedCategoryId = t.categoriaId;
-
-      // Formata o valor inicial
-      final formatter = NumberFormat.currency(locale: 'pt_BR', symbol: '');
-      _valueController.text = formatter.format(t.valor).trim();
     }
+
+    // Preenche a data no campo
+    _dateController.text = DateFormat('dd/MM/yyyy').format(_selectedDate);
   }
 
   @override
   void dispose() {
     _valueController.dispose();
     _descriptionController.dispose();
+    _dateController.dispose();
     super.dispose();
   }
 
-  // Converte o valor formatado para double
   double _parseValue(String text) {
-    if (text.isEmpty) return 0.0;
-
-    String cleanValue = text
+    String clean = text
         .replaceAll('R\$', '')
-        .replaceAll(' ', '')
-        .replaceAll('.', '') // Remove separador de milhar
-        .replaceAll(',', '.'); // Converte decimal
-
-    return double.tryParse(cleanValue) ?? 0.0;
+        .replaceAll('.', '')
+        .replaceAll(',', '.')
+        .trim();
+    return double.tryParse(clean) ?? 0.0;
   }
 
-  // Salva ou atualiza a transação
   Future<void> _saveTransaction() async {
-    if (!_formKey.currentState!.validate()) {
-      return;
-    }
+    if (!_formKey.currentState!.validate()) return;
 
     final valor = _parseValue(_valueController.text);
-    final descricao = _descriptionController.text.isEmpty
-        ? (_type == TransactionType.receita ? 'Receita' : 'Despesa')
-        : _descriptionController.text;
-
-    // Busca o nome da categoria
-    final categoria = _allCategories.firstWhere(
-      (cat) => cat.id == _selectedCategoryId,
-      orElse: () => Category(id: 0, nome: 'Desconhecida', tipo: ''),
-    );
-
-    developer.log(
-      '''Dados do formulário:
-      - Tipo: ${_type == TransactionType.receita ? "RECEITA" : "DESPESA"}
-      - Valor: R\$ ${valor.toStringAsFixed(2)}
-      - Descrição: $descricao
-      - Categoria ID: $_selectedCategoryId (${categoria.nome})
-      - Data: ${_selectedDate.toIso8601String()}
-      - Fixed Transaction: false''',
-      name: 'TransactionFormScreen',
-    );
-
     if (valor <= 0) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Insira um valor maior que zero'),
-          backgroundColor: Colors.red,
-        ),
+        const SnackBar(content: Text('Insira um valor maior que zero')),
       );
       return;
     }
 
-    setState(() {
-      _isLoading = true;
-    });
+    final descricao = _descriptionController.text.isEmpty
+        ? (_type == TransactionType.receita ? 'Receita' : 'Despesa')
+        : _descriptionController.text;
+
+    final service = ref.read(TransactionServiceProvider);
+
+    setState(() => _isLoading = true);
 
     try {
-      final transactionService = ref.read(TransactionServiceProvider);
-
       if (widget.isEditing && widget.transaction != null) {
-        // ATUALIZAÇÃO
-
-        await transactionService.updateTransaction(
+        await service.updateTransaction(
           id: widget.transaction!.id,
           descricao: descricao,
           tipo: _type,
@@ -180,18 +146,8 @@ class _TransactionFormScreenState extends ConsumerState<TransactionFormScreen> {
           categoriaId: _selectedCategoryId!,
           fixedTransaction: false,
         );
-
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Transação atualizada com sucesso!'),
-              backgroundColor: Colors.green,
-            ),
-          );
-        }
       } else {
-        // CRIAÇÃO
-        await transactionService.addTransaction(
+        await service.addTransaction(
           descricao: descricao,
           tipo: _type,
           valor: valor,
@@ -199,125 +155,35 @@ class _TransactionFormScreenState extends ConsumerState<TransactionFormScreen> {
           categoriaId: _selectedCategoryId!,
           fixedTransaction: false,
         );
-
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Transação registrada com sucesso!'),
-              backgroundColor: Colors.green,
-            ),
-          );
-        }
       }
 
-      if (mounted) {
-        // Retorna true para indicar que houve mudança
-        Navigator.of(context).pop(true);
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Erro ao salvar: ${e.toString()}'),
-            backgroundColor: Colors.red,
-            duration: const Duration(seconds: 5),
-          ),
-        );
-      }
+      if (mounted) Navigator.pop(context, true);
     } finally {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
-    }
-  }
-
-  // Deleta a transação
-  Future<void> _deleteTransaction() async {
-    if (widget.transaction == null) return;
-
-    // Confirmação
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Confirmar exclusão'),
-        content: const Text('Tem certeza que deseja excluir esta transação?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancelar'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('Excluir'),
-          ),
-        ],
-      ),
-    );
-
-    if (confirmed != true) return;
-
-    setState(() {
-      _isLoading = true;
-    });
-
-    try {
-      final transactionService = ref.read(TransactionServiceProvider);
-      await transactionService.deleteTransaction(widget.transaction!.id);
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Transação excluída com sucesso!'),
-            backgroundColor: Colors.green,
-          ),
-        );
-        Navigator.of(context).pop(true);
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Erro ao excluir: ${e.toString()}'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
   Future<void> _selectDate(BuildContext context) async {
-    final DateTime? picked = await showDatePicker(
+    final picked = await showDatePicker(
       context: context,
       initialDate: _selectedDate,
       firstDate: DateTime(2000),
-      lastDate: DateTime(2101),
-      builder: (context, child) {
-        return Theme(
-          data: ThemeData.light().copyWith(
-            colorScheme: ColorScheme.light(
-              primary: Theme.of(context).primaryColor,
-              onPrimary: Colors.white,
-              surface: Colors.white,
-              onSurface: const Color(0xFF424242),
-            ),
+      lastDate: DateTime(2100),
+      builder: (context, child) => Theme(
+        data: ThemeData.light().copyWith(
+          colorScheme: ColorScheme.light(
+            primary: Theme.of(context).primaryColor,
           ),
-          child: child!,
-        );
-      },
+        ),
+        child: child!,
+      ),
     );
 
-    if (picked != null && picked != _selectedDate) {
+    if (picked != null) {
       setState(() {
         _selectedDate = picked;
+        _dateController.text =
+            DateFormat('dd/MM/yyyy').format(_selectedDate);
       });
     }
   }
@@ -328,86 +194,119 @@ class _TransactionFormScreenState extends ConsumerState<TransactionFormScreen> {
         ? const Color(0xFF2E7D32)
         : const Color(0xFFE53935);
 
-    final String title = widget.isEditing
+    final title = widget.isEditing
         ? 'Editar ${_type == TransactionType.receita ? "Receita" : "Despesa"}'
         : 'Nova ${_type == TransactionType.receita ? "Receita" : "Despesa"}';
 
     return Scaffold(
       backgroundColor: Colors.white,
+
       appBar: AppBar(
-        // Removemos o botão de voltar para forçar a navegação via menu inferior
-        automaticallyImplyLeading: false,
-        title: Text(title,
-            style: TextStyle(color: typeColor, fontWeight: FontWeight.bold)),
+        automaticallyImplyLeading: false, // sem botão de voltar
+        title: Text(
+          title,
+          style: TextStyle(color: typeColor, fontWeight: FontWeight.bold),
+        ),
         backgroundColor: Colors.white,
         elevation: 0,
+        centerTitle: true,
         iconTheme: IconThemeData(color: typeColor),
-        actions: widget.isEditing ? null : [_buildTypeSwapButton(typeColor)],
+        actions: widget.isEditing ? null : [
+          _buildTypeSwapButton(typeColor),
+        ],
       ),
+
+      bottomNavigationBar: BottomNavMenu(
+        currentIndex: 2,
+        primaryColor: Theme.of(context).primaryColor,
+      ),
+
       body: Stack(
         children: [
           SingleChildScrollView(
-            padding: const EdgeInsets.all(16.0),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  const SizedBox(height: 10),
-                  _buildValueField(typeColor),
-                  const SizedBox(height: 20),
-                  _buildCategoryDropdown(typeColor),
-                  const SizedBox(height: 20),
-                  _buildDescriptionField(typeColor),
-                  const SizedBox(height: 20),
-                  _buildDateField(typeColor),
-                  const SizedBox(height: 40),
-                  _buildActionButton(typeColor,
-                      widget.isEditing ? 'Salvar Alterações' : 'Registrar'),
-                  if (widget.isEditing) _buildDeleteButton(),
-                  const SizedBox(height: 20),
-                ],
+            padding: const EdgeInsets.all(16),
+            child: Card(
+              elevation: 2,
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12)),
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Text(
+                        'Detalhes da Transação',
+                        style: TextStyle(
+                          fontSize: 18,
+                          color: typeColor,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+
+                      _buildValueField(typeColor),
+                      const SizedBox(height: 16),
+
+                      _buildCategoryDropdown(typeColor),
+                      const SizedBox(height: 16),
+
+                      _buildDescriptionField(typeColor),
+                      const SizedBox(height: 16),
+
+                      _buildDateField(typeColor),
+                      const SizedBox(height: 24),
+
+                      _buildActionButton(
+                        typeColor,
+                        widget.isEditing
+                            ? 'Salvar Alterações'
+                            : 'Registrar',
+                      ),
+
+                      if (widget.isEditing) _buildDeleteButton(),
+                      const SizedBox(height: 10),
+                    ],
+                  ),
+                ),
               ),
             ),
           ),
 
-          // Loading overlay
           if (_isLoading)
             Container(
-              color: Colors.black.withOpacity(0.3),
+              color: Colors.black26,
               child: const Center(
                 child: CircularProgressIndicator(color: Colors.white),
               ),
             ),
         ],
       ),
-      // Menu inferior usado para navegação (FAB já presente no menu)
-      bottomNavigationBar: BottomNavMenu(
-        currentIndex: 2,
-        primaryColor: Theme.of(context).primaryColor,
-        // Ao salvar/atualizar/excluir esta tela chama Navigator.pop(true).
-        // O callback aqui pode ser usado pelo pai se necessário — deixamos vazio.
-        onTransactionAdded: () {},
-      ),
     );
   }
 
-  // --- WIDGETS AUXILIARES DE FORMULÁRIO ---
+  // ----------------------------------------------
+  // WIDGETS
+  // ----------------------------------------------
 
-  Widget _buildTypeSwapButton(Color typeColor) {
-    final bool isReceita = _type == TransactionType.receita;
-
+  Widget _buildTypeSwapButton(Color color) {
+    final isReceita = _type == TransactionType.receita;
     return TextButton.icon(
-      icon: Icon(isReceita ? Icons.arrow_downward : Icons.arrow_upward,
-          color: typeColor, size: 18),
+      icon: Icon(
+        isReceita ? Icons.arrow_downward : Icons.arrow_upward,
+        color: color,
+      ),
       label: Text(
         isReceita ? 'Despesa' : 'Receita',
-        style: TextStyle(color: typeColor, fontSize: 12),
+        style: TextStyle(color: color),
       ),
       onPressed: () {
         setState(() {
-          _type = isReceita ? TransactionType.despesa : TransactionType.receita;
-          _selectedCategoryId = null; // Reseta a categoria
+          _type = isReceita
+              ? TransactionType.despesa
+              : TransactionType.receita;
+          _selectedCategoryId = null;
         });
       },
     );
@@ -417,77 +316,62 @@ class _TransactionFormScreenState extends ConsumerState<TransactionFormScreen> {
     return TextFormField(
       controller: _valueController,
       keyboardType: const TextInputType.numberWithOptions(decimal: true),
-      onChanged: (value) {
-        final cleanValue = value.replaceAll(RegExp(r'[^\d]'), '');
-        if (cleanValue.isNotEmpty) {
-          final number = int.parse(cleanValue);
-          final formatter = NumberFormat.currency(locale: 'pt_BR', symbol: '');
-          final formatted = formatter.format(number / 100);
-
-          _valueController.value = TextEditingValue(
-            text: formatted.trim(),
-            selection: TextSelection.collapsed(offset: formatted.trim().length),
-          );
-        }
-      },
       decoration: InputDecoration(
         labelText: 'Valor',
         prefixText: 'R\$ ',
         prefixStyle: TextStyle(color: color, fontSize: 18),
-        border: const OutlineInputBorder(
-            borderRadius: BorderRadius.all(Radius.circular(10))),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
           borderSide: BorderSide(color: color, width: 2),
         ),
       ),
-      validator: (value) {
-        if (value == null || value.isEmpty) {
-          return 'Insira um valor.';
-        }
-        final parsed = _parseValue(value);
-        if (parsed <= 0) {
-          return 'Insira um valor maior que zero.';
-        }
+      onChanged: (v) {
+        final clean = v.replaceAll(RegExp(r'[^\d]'), '');
+        if (clean.isEmpty) return;
+
+        final number = int.parse(clean);
+        final formatted = NumberFormat.currency(
+          locale: 'pt_BR',
+          symbol: '',
+        ).format(number / 100).trim();
+
+        _valueController.value = TextEditingValue(
+          text: formatted,
+          selection: TextSelection.collapsed(offset: formatted.length),
+        );
+      },
+      validator: (v) {
+        if (v == null || v.isEmpty) return 'Insira um valor.';
+        if (_parseValue(v) <= 0) return 'Insira um valor maior que zero.';
         return null;
       },
     );
   }
 
-  Widget _buildCategoryDropdown(Color typeColor) {
+  Widget _buildCategoryDropdown(Color color) {
     return DropdownButtonFormField<int>(
       decoration: InputDecoration(
         labelText: 'Categoria',
-        prefixIcon: Icon(Icons.category_outlined, color: typeColor),
-        border: const OutlineInputBorder(
-            borderRadius: BorderRadius.all(Radius.circular(10))),
+        prefixIcon: Icon(Icons.category_outlined, color: color),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
-          borderSide: BorderSide(color: typeColor, width: 2),
+          borderSide: BorderSide(color: color, width: 2),
         ),
       ),
-      initialValue: _selectedCategoryId,
-      hint: const Text('Selecione uma categoria'),
-      items: _currentCategories.map((Category category) {
-        return DropdownMenuItem<int>(
-          value: category.id,
-          child: Text(category.nome),
-        );
-      }).toList(),
-      onChanged: (int? newValue) {
-        setState(() {
-          _selectedCategoryId = newValue;
-        });
-
-        final categoria = _allCategories.firstWhere(
-          (cat) => cat.id == newValue,
-          orElse: () => Category(id: 0, nome: 'Desconhecida', tipo: ''),
-        );
-      },
-      validator: (value) {
-        if (value == null) return 'Selecione a categoria.';
-        return null;
-      },
+      value: _selectedCategoryId,
+      items: _currentCategories
+          .map(
+            (cat) => DropdownMenuItem(
+              value: cat.id,
+              child: Text(cat.nome),
+            ),
+          )
+          .toList(),
+      onChanged: (v) => setState(() => _selectedCategoryId = v),
+      validator: (v) =>
+          v == null ? 'Selecione a categoria.' : null,
     );
   }
 
@@ -498,8 +382,7 @@ class _TransactionFormScreenState extends ConsumerState<TransactionFormScreen> {
       decoration: InputDecoration(
         labelText: 'Descrição (Opcional)',
         prefixIcon: Icon(Icons.description_outlined, color: color),
-        border: const OutlineInputBorder(
-            borderRadius: BorderRadius.all(Radius.circular(10))),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
           borderSide: BorderSide(color: color, width: 2),
@@ -509,16 +392,13 @@ class _TransactionFormScreenState extends ConsumerState<TransactionFormScreen> {
   }
 
   Widget _buildDateField(Color color) {
-    final DateFormat formatter = DateFormat('dd/MM/yyyy');
-
     return TextFormField(
+      controller: _dateController,
       readOnly: true,
       decoration: InputDecoration(
         labelText: 'Data',
-        hintText: formatter.format(_selectedDate),
         prefixIcon: Icon(Icons.calendar_today, color: color),
-        border: const OutlineInputBorder(
-            borderRadius: BorderRadius.all(Radius.circular(10))),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
           borderSide: BorderSide(color: color, width: 2),
@@ -529,31 +409,53 @@ class _TransactionFormScreenState extends ConsumerState<TransactionFormScreen> {
   }
 
   Widget _buildActionButton(Color color, String text) {
-    return SizedBox(
-      width: double.infinity,
-      child: ElevatedButton(
-        onPressed: _isLoading ? null : _saveTransaction,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: color,
-          foregroundColor: Colors.white,
-          padding: const EdgeInsets.symmetric(vertical: 15),
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-          disabledBackgroundColor: color.withOpacity(0.5),
-        ),
-        child: Text(text, style: const TextStyle(fontSize: 18)),
+    return ElevatedButton(
+      onPressed: _isLoading ? null : _saveTransaction,
+      style: ElevatedButton.styleFrom(
+        backgroundColor: color,
+        foregroundColor: Colors.white,
+        padding: const EdgeInsets.symmetric(vertical: 15),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       ),
+      child: Text(text, style: const TextStyle(fontSize: 18)),
     );
   }
 
   Widget _buildDeleteButton() {
-    return Padding(
-      padding: const EdgeInsets.only(top: 20.0),
-      child: TextButton(
-        onPressed: _isLoading ? null : _deleteTransaction,
-        child: const Text('Excluir Transação',
-            style: TextStyle(color: Color(0xFFE53935), fontSize: 16)),
+    return TextButton(
+      onPressed: _deleteTransaction,
+      child: const Text(
+        'Excluir Transação',
+        style: TextStyle(color: Color(0xFFE53935)),
       ),
     );
+  }
+
+  Future<void> _deleteTransaction() async {
+    if (widget.transaction == null) return;
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Excluir'),
+        content: const Text('Deseja excluir esta transação?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancelar'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Excluir'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      final service = ref.read(TransactionServiceProvider);
+      await service.deleteTransaction(widget.transaction!.id);
+      if (mounted) Navigator.pop(context, true);
+    }
   }
 }
