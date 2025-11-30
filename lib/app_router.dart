@@ -12,7 +12,7 @@ import 'package:horizon_finance/screens/goals/goals_screen.dart';
 import 'package:horizon_finance/screens/profile/profile_screen.dart';
 import 'package:horizon_finance/main.dart';
 import 'package:horizon_finance/screens/goals/goals_form_screen.dart'; 
-
+import 'package:horizon_finance/screens/profile/settings_screen.dart';
 
 final router = GoRouter(
   navigatorKey: navigatorKey,
@@ -71,6 +71,11 @@ final router = GoRouter(
     GoRoute(
       path: '/edit-profile',
       builder: (context, state) => const EditProfileScreen(),
+    ),
+    GoRoute(
+      path: '/settings',
+      name: 'settings',
+      builder: (context, state) => const SettingsScreen(),
     ),
   ],
 );

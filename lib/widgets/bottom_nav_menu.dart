@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:horizon_finance/screens/transaction/transaction_form_screen.dart';
+import 'package:horizon_finance/screens/transaction/transaction_form_screen.dart'; 
 import 'package:horizon_finance/features/transactions/models/transactions.dart';
 
 class BottomNavMenu extends StatelessWidget {
@@ -17,10 +17,15 @@ class BottomNavMenu extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    final backgroundColor = isDarkMode ? const Color(0xFF1E1E1E) : Colors.white;
+    final inactiveColor = isDarkMode ? Colors.grey[400]! : Colors.grey;
+
     return BottomAppBar(
       shape: const CircularNotchedRectangle(),
       notchMargin: 8.0,
-      color: Colors.white,
+      color: backgroundColor,
+      elevation: 8,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: <Widget>[
@@ -28,7 +33,8 @@ class BottomNavMenu extends StatelessWidget {
           IconButton(
             icon: Icon(
               Icons.dashboard,
-              color: currentIndex == 0 ? primaryColor : Colors.grey,
+              color: currentIndex == 0 ? primaryColor : inactiveColor,
+              size: 24,
             ),
             onPressed: () {
               if (currentIndex != 0) {
@@ -40,8 +46,9 @@ class BottomNavMenu extends StatelessWidget {
           // 2. RELATÓRIOS
           IconButton(
             icon: Icon(
-              Icons.list_alt,
-              color: currentIndex == 1 ? primaryColor : Colors.grey,
+              Icons.analytics,
+              color: currentIndex == 1 ? primaryColor : inactiveColor,
+              size: 24,
             ),
             onPressed: () {
               if (currentIndex != 1) {
@@ -53,24 +60,28 @@ class BottomNavMenu extends StatelessWidget {
           // 3. BOTÃO DE AÇÃO (ADICIONAR TRANSAÇÃO)
           FloatingActionButton(
             onPressed: () async {
-              await Navigator.of(context).push(
+              final result = await Navigator.of(context).push(
                 MaterialPageRoute(
                   builder: (context) => const TransactionFormScreen(
-                      initialType: TransactionType.despesa),
+                    initialType: TransactionType.despesa,
+                  ),
                 ),
               );
-              onTransactionAdded?.call();
+              if (result == true) {
+                onTransactionAdded?.call();
+              }
             },
-            // Restaurando o azul original (cor passada via `primaryColor`)
             backgroundColor: primaryColor,
-            child: const Icon(Icons.add, color: Colors.white),
+            elevation: 2,
+            child: const Icon(Icons.add, color: Colors.white, size: 24),
           ),
 
           // 4. METAS
           IconButton(
             icon: Icon(
-              Icons.track_changes,
-              color: currentIndex == 3 ? primaryColor : Colors.grey,
+              Icons.flag,
+              color: currentIndex == 3 ? primaryColor : inactiveColor,
+              size: 24,
             ),
             onPressed: () {
               if (currentIndex != 3) {
@@ -83,7 +94,8 @@ class BottomNavMenu extends StatelessWidget {
           IconButton(
             icon: Icon(
               Icons.person,
-              color: currentIndex == 4 ? primaryColor : Colors.grey,
+              color: currentIndex == 4 ? primaryColor : inactiveColor,
+              size: 24,
             ),
             onPressed: () {
               if (currentIndex != 4) {

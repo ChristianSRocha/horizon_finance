@@ -233,7 +233,6 @@ class _TransactionFormScreenState
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      // BANNER BOTÃO RECEITA/DESPESA
                       GestureDetector(
                         onTap: () {
                           setState(() {
@@ -376,8 +375,14 @@ class _TransactionFormScreenState
       maxLength: 100,
       decoration: InputDecoration(
         labelText: 'Descrição (Opcional)',
-        prefixIcon: Icon(Icons.description_outlined, color: color),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: BorderSide(color: color, width: 2),
+        ),
+        counterText: '', // remove o "0/100"
       ),
     );
   }

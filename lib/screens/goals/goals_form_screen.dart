@@ -18,11 +18,8 @@ class _GoalFormScreenState extends ConsumerState<GoalFormScreen> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _amountController = TextEditingController();
   final TextEditingController _descriptionController =
-      TextEditingController(); // Opcional: mantive visualmente, mas não estamos salvando no model simplificado
-
+      TextEditingController();
   DateTime _selectedDate = DateTime.now().add(const Duration(days: 365));
-  // A cor principal passa a ser obtida do tema no método build para manter
-  // consistência com a tela de listagem de metas.
 
   @override
   void dispose() {

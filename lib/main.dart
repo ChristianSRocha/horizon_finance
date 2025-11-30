@@ -7,8 +7,7 @@ import 'package:horizon_finance/app_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:horizon_finance/features/ai_insights/provider/gemini_api_key_provider.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-
-
+import 'package:horizon_finance/screens/profile/settings_screen.dart';
 
 final navigatorKey = GlobalKey<NavigatorState>();
 
@@ -36,15 +35,15 @@ void main() async {
   );
 }
 
-
-
-class HorizonsFinanceApp extends StatelessWidget {
+class HorizonsFinanceApp extends ConsumerWidget {
   const HorizonsFinanceApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     const Color primaryBlue = Color(0xFF0D47A1);
-    const Color softWhite = Color(0xFFFAFAFA);
+    
+    // Observa o provider do tema da settings_screen
+    final themeMode = ref.watch(themeModeProvider);
 
     return MaterialApp.router(
       title: 'Horizons Finance',
@@ -55,10 +54,45 @@ class HorizonsFinanceApp extends StatelessWidget {
           seedColor: primaryBlue,
           primary: primaryBlue,
           secondary: const Color(0xFF1976D2),
+          brightness: Brightness.light,
         ),
-        scaffoldBackgroundColor: softWhite,
+        scaffoldBackgroundColor: const Color(0xFFFAFAFA),
         useMaterial3: true,
+        appBarTheme: const AppBarTheme(
+          backgroundColor: Color(0xFFFAFAFA),
+          elevation: 0,
+          centerTitle: true,
+          iconTheme: IconThemeData(color: primaryBlue),
+          titleTextStyle: TextStyle(
+            color: primaryBlue,
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
       ),
+      darkTheme: ThemeData(
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: primaryBlue,
+          primary: primaryBlue,
+          secondary: const Color(0xFF1976D2),
+          brightness: Brightness.dark,
+        ),
+        scaffoldBackgroundColor: const Color(0xFF121212),
+        useMaterial3: true,
+        appBarTheme: const AppBarTheme(
+          backgroundColor: Color(0xFF1E1E1E),
+          elevation: 0,
+          centerTitle: true,
+          iconTheme: IconThemeData(color: Colors.white),
+          titleTextStyle: TextStyle(
+            color: Colors.white,
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        dialogBackgroundColor: const Color(0xFF1E1E1E),
+      ),
+      themeMode: themeMode,
     );
   }
 }
