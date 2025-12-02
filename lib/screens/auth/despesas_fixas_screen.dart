@@ -4,7 +4,6 @@ import 'package:go_router/go_router.dart';
 import 'package:horizon_finance/features/auth/services/auth_service.dart';
 import 'package:horizon_finance/features/transactions/services/transaction_service.dart';
 import 'package:horizon_finance/features/transactions/models/transactions.dart';
-import 'dart:developer' as developer;
 
 class DespesasFixasScreen extends ConsumerStatefulWidget {
   const DespesasFixasScreen({super.key});
@@ -20,14 +19,12 @@ class _DespesasFixasScreenState extends ConsumerState<DespesasFixasScreen> {
   final _formKey = GlobalKey<FormState>();
 
   bool _isLoading = false;
-  final Color _color = const Color(0xFFE53935); // Vermelho para Despesa Fixa
+  final Color _color = const Color(0xFFE53935);
 
-  // ESTADOS
-  int _selectedDay = DateTime.now().day; // Armazena apenas o DIA do mês
+  int _selectedDay = DateTime.now().day;
   int _selectedCategoryId = 6;
   String _selectedCategoryName = 'Aluguel/Moradia';
 
-  // CATEGORIAS MOCK
   final Map<int, String> _expenseCategories = {
     6: 'Aluguel/Moradia',
     7: 'Contas Fixas (Luz, Água)',
@@ -44,8 +41,6 @@ class _DespesasFixasScreenState extends ConsumerState<DespesasFixasScreen> {
     _descriptionController.dispose();
     super.dispose();
   }
-
-  // --- FUNÇÕES DE VALOR E FORMATAÇÃO ---
 
   double _parseValue(String text) {
     if (text.isEmpty) return 0.0;
@@ -71,7 +66,6 @@ class _DespesasFixasScreenState extends ConsumerState<DespesasFixasScreen> {
     String integerPart = cleanText.substring(0, cleanText.length - 2);
     String fractionalPart = cleanText.substring(cleanText.length - 2);
 
-    // Remove zeros à esquerda (ex: "001" -> "1")
     integerPart = BigInt.parse(integerPart).toString();
 
     if (integerPart.length > 3) {
@@ -82,8 +76,6 @@ class _DespesasFixasScreenState extends ConsumerState<DespesasFixasScreen> {
     }
     return '$integerPart,$fractionalPart';
   }
-
-  // --- FUNÇÕES DE FLUXO ---
 
   Future<void> _saveTransaction() async {
     if (!_formKey.currentState!.validate()) return;
@@ -103,15 +95,13 @@ class _DespesasFixasScreenState extends ConsumerState<DespesasFixasScreen> {
 
     try {
       final transactionService = ref.read(TransactionServiceProvider);
-      
-      // Descrição: usa a digitada ou o nome da categoria
+
       final descricao = _descriptionController.text.trim().isEmpty
           ? _expenseCategories[_selectedCategoryId]!
           : _descriptionController.text.trim();
-      
-      developer.log(
-        'Salvando despesa fixa - Valor: R\$ ${valor.toStringAsFixed(2)}, Dia: $_selectedDay',
-        name: 'DespesasFixasScreen',
+
+      print(
+        'Salvando despesa fixa (TEMPLATE) - Valor: R\$ ${valor.toStringAsFixed(2)}, Dia: $_selectedDay',
       );
 
       await transactionService.addTransaction(
@@ -120,15 +110,13 @@ class _DespesasFixasScreenState extends ConsumerState<DespesasFixasScreen> {
         valor: valor,
         categoriaId: _selectedCategoryId,
         fixedTransaction: true,
-        diaDoMes: _selectedDay, // 
+        diaDoMes: _selectedDay,
       );
 
       if (mounted) {
-        // Limpa os campos após salvar
         _valueController.clear();
         _descriptionController.clear();
-        
-        // Reseta para valores padrão
+
         setState(() {
           _selectedCategoryName = 'Aluguel/Moradia';
           _selectedCategoryId = 6;
@@ -138,7 +126,7 @@ class _DespesasFixasScreenState extends ConsumerState<DespesasFixasScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              'Despesa "$descricao" salva com sucesso! (Dia $_selectedDay)',
+              'Template "$descricao" criado com sucesso! (Dia $_selectedDay)',
             ),
             backgroundColor: Colors.green,
             duration: const Duration(seconds: 2),
@@ -146,12 +134,10 @@ class _DespesasFixasScreenState extends ConsumerState<DespesasFixasScreen> {
         );
       }
     } on Exception catch (e) {
-      developer.log(
+      print(
         'Erro ao salvar despesa fixa: ${e.toString()}',
-        name: 'DespesasFixasScreen',
-        error: e,
       );
-      
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -162,12 +148,10 @@ class _DespesasFixasScreenState extends ConsumerState<DespesasFixasScreen> {
         );
       }
     } catch (e) {
-      developer.log(
+      print(
         'Erro inesperado: ${e.toString()}',
-        name: 'DespesasFixasScreen',
-        error: e,
       );
-      
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -184,37 +168,35 @@ class _DespesasFixasScreenState extends ConsumerState<DespesasFixasScreen> {
 
   Future<void> _finishOnboarding() async {
     setState(() => _isLoading = true);
-    
+
     try {
-      developer.log(
+      print(
         'Finalizando onboarding...',
-        name: 'DespesasFixasScreen',
       );
-      
+
       await ref.read(authServiceProvider.notifier).concluirOnboarding();
-      
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Onboarding concluído com sucesso!'),
+            content: Text(
+                'Onboarding concluído! Templates cadastrados com sucesso.'),
             backgroundColor: Colors.green,
-            duration: Duration(seconds: 1),
+            duration: Duration(seconds: 2),
           ),
         );
-        
+
         await Future.delayed(const Duration(milliseconds: 500));
-        
+
         if (mounted) {
           context.go('/dashboard');
         }
       }
     } on Exception catch (e) {
-      developer.log(
+      print(
         'Erro ao finalizar onboarding: ${e.toString()}',
-        name: 'DespesasFixasScreen',
-        error: e,
       );
-      
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -225,16 +207,15 @@ class _DespesasFixasScreenState extends ConsumerState<DespesasFixasScreen> {
         );
       }
     } catch (e) {
-      developer.log(
+      print(
         'Erro inesperado ao finalizar: ${e.toString()}',
-        name: 'DespesasFixasScreen',
-        error: e,
       );
-      
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Erro ao finalizar Onboarding. Tente novamente.'),
+            content:
+                Text('Erro ao finalizar Onboarding. Tente novamente.'),
             backgroundColor: Colors.red,
             duration: Duration(seconds: 3),
           ),
@@ -245,10 +226,7 @@ class _DespesasFixasScreenState extends ConsumerState<DespesasFixasScreen> {
     }
   }
 
-  // --- FUNÇÕES DE SELEÇÃO DE DIA ---
-
   Future<void> _selectDay(BuildContext context) async {
-    // Mostra um diálogo simples para escolher o dia (1-31)
     final int? picked = await showDialog<int>(
       context: context,
       builder: (BuildContext context) {
@@ -264,8 +242,10 @@ class _DespesasFixasScreenState extends ConsumerState<DespesasFixasScreen> {
                   'Dia $day',
                   style: TextStyle(
                     fontSize: 16,
-                    fontWeight: day == _selectedDay ? FontWeight.bold : FontWeight.normal,
-                    color: day == _selectedDay ? _color : Colors.black87,
+                    fontWeight:
+                        day == _selectedDay ? FontWeight.bold : FontWeight.normal,
+                    color:
+                        day == _selectedDay ? _color : Colors.black87,
                   ),
                 ),
               ),
@@ -274,13 +254,11 @@ class _DespesasFixasScreenState extends ConsumerState<DespesasFixasScreen> {
         );
       },
     );
-    
+
     if (picked != null) {
       setState(() => _selectedDay = picked);
     }
   }
-
-  // --- WIDGETS DE CONSTRUÇÃO ---
 
   Widget _buildValueField(Color color) {
     return TextFormField(
@@ -346,7 +324,7 @@ class _DespesasFixasScreenState extends ConsumerState<DespesasFixasScreen> {
           borderSide: BorderSide(color: color, width: 2),
         ),
       ),
-      initialValue: _selectedCategoryId,
+      value: _selectedCategoryId,
       items: _expenseCategories.entries.map((entry) {
         return DropdownMenuItem<int>(
           value: entry.key,
@@ -408,7 +386,6 @@ class _DespesasFixasScreenState extends ConsumerState<DespesasFixasScreen> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
-                // TÍTULOS
                 Text(
                   'Despesas Fixas Recorrentes',
                   textAlign: TextAlign.center,
@@ -420,7 +397,7 @@ class _DespesasFixasScreenState extends ConsumerState<DespesasFixasScreen> {
                 ),
                 const SizedBox(height: 10),
                 const Text(
-                  'Registre suas despesas fixas (Aluguel, Assinaturas, etc.).',
+                  'Cadastre templates de despesas que se repetem todo mês.',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 16,
@@ -429,7 +406,6 @@ class _DespesasFixasScreenState extends ConsumerState<DespesasFixasScreen> {
                 ),
                 const SizedBox(height: 40),
 
-                // CAMPOS DE FORMULÁRIO
                 _buildValueField(_color),
                 const SizedBox(height: 20),
 
@@ -442,7 +418,6 @@ class _DespesasFixasScreenState extends ConsumerState<DespesasFixasScreen> {
                 _buildDescriptionField(_color),
                 const SizedBox(height: 40),
 
-                // BOTÃO PRINCIPAL: SALVA E LIMPA O FORM
                 ElevatedButton(
                   onPressed: _isLoading ? null : _saveTransaction,
                   style: ElevatedButton.styleFrom(
@@ -469,7 +444,6 @@ class _DespesasFixasScreenState extends ConsumerState<DespesasFixasScreen> {
                 ),
                 const SizedBox(height: 20),
 
-                // BOTÃO SECUNDÁRIO: FINALIZA O ONBOARDING
                 OutlinedButton(
                   onPressed: _isLoading ? null : _finishOnboarding,
                   style: OutlinedButton.styleFrom(
