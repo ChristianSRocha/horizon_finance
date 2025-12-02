@@ -310,7 +310,7 @@ class _GoalsScreenState extends ConsumerState<GoalsScreen> with SingleTickerProv
             child: const Text('Cancelar'),
           ),
           ElevatedButton(
-            onPressed: () {
+            onPressed: () async {
               final novoNome = nameCtrl.text;
               final novoValor = double.tryParse(currentValCtrl.text.replaceAll(',', '.')) ?? meta.valorAtual;
 
@@ -323,7 +323,10 @@ class _GoalsScreenState extends ConsumerState<GoalsScreen> with SingleTickerProv
                                     novoValor >= meta.valorTotal && 
                                     meta.valorTotal > 0;
 
-              ref.read(metasControllerProvider.notifier).editarMeta(metaAtualizada);
+              await ref.read(metasControllerProvider.notifier).editarMeta(metaAtualizada);
+              ref.invalidate(metasConcluidasProvider);
+              ref.invalidate(metasControllerProvider);
+
               
               Navigator.pop(ctx);
               
@@ -356,8 +359,8 @@ class _GoalsScreenState extends ConsumerState<GoalsScreen> with SingleTickerProv
             child: const Text('Cancelar'),
           ),
           TextButton(
-            onPressed: () {
-              ref.read(metasControllerProvider.notifier).excluirMeta(id);
+            onPressed: () async {
+              await ref.read(metasControllerProvider.notifier).excluirMeta(id);
               Navigator.pop(ctx);
             },
             child: const Text('Excluir', style: TextStyle(color: Colors.red)),

@@ -29,7 +29,7 @@ class AIInsightsRepository {
         .from("metas")
         .select()
         .eq("usuario_id", userId)
-        .eq("Ativo", true);
+        .eq("ativo", true);
       
     return data.map<Meta>((t) => Meta.fromJson(t)).toList();
   }
