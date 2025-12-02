@@ -23,8 +23,8 @@ class _InsightsCardState extends ConsumerState<InsightsCard> {
       ref.invalidate(aiInsightsProvider);
     });
 
-    // Auto-scroll suave a cada 8 segundos
-    Timer.periodic(const Duration(seconds: 15), (timer) {
+    // Auto-scroll suave 
+    Timer.periodic(const Duration(seconds: 25), (timer) {
       if (_pageController.hasClients) {
         final nextPage = (_currentPage + 1) % 3;
         _pageController.animateToPage(

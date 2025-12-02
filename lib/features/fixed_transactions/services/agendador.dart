@@ -1,7 +1,7 @@
 // lib/features/fixed-transactions/services/agendador.dart
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:horizon_finance/features/fixed-transactions/services/fixed_transaction_service.dart';
+import 'fixed_transaction_service.dart';
 import 'dart:developer' as developer;
 
 /// Provider que gerencia o agendamento diário

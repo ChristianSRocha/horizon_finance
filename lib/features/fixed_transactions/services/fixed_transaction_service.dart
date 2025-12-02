@@ -233,4 +233,44 @@ class FixedTransactionService {
       return [];
     }
   }
+
+  Future<List<Transaction>> processDailyRecurrences([DateTime? date]) async {
+    try {
+      final today = date ?? DateTime.now();
+      final userId = _supabase.auth.currentUser?.id;
+      if (userId == null) throw Exception('Usuário não autenticado');
+
+      final templates = await getActiveTemplates();
+      final List<Transaction> created = [];
+
+      for (final template in templates) {
+        final diaDoMes = template.diaDoMes ?? 1;
+
+        // Só cria se o template for HOJE
+        if (diaDoMes != today.day) continue;
+
+        final exists = await hasMonthlyInstanceForTemplate(
+          templateId: template.id,
+          year: today.year,
+          month: today.month,
+        );
+
+        if (!exists) {
+          final instance = await createMonthlyInstance(
+            template: template,
+            year: today.year,
+            month: today.month,
+          );
+
+          if (instance != null) created.add(instance);
+        }
+      }
+
+      return created;
+    } catch (e) {
+      print('Erro ao processar recorrências diárias: $e');
+      return [];
+    }
+  }
+
 }

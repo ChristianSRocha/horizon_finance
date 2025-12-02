@@ -29,6 +29,10 @@ dependencies:
   
   # Charts & Visualization
   fl_chart: ^0.65.0
+
+  app_links: ^3.4.1
+
+
   
   # Date & Time
   intl: ^0.18.1
