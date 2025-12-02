@@ -15,10 +15,10 @@ final navigatorKey = GlobalKey<NavigatorState>();
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // 1️⃣ Carrega o arquivo .env
+  // Carrega o arquivo .env
   await dotenv.load(fileName: ".env");
 
-  // 2️⃣ Inicializa o Supabase com variáveis do .env
+  // Inicializa o Supabase com variáveis do .env
   await Supabase.initialize(
     url: dotenv.env['SUPABASE_URL']!,
     anonKey: dotenv.env['SUPABASE_ANON_KEY']!,
