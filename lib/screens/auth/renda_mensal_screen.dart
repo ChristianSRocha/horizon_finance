@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
-import'package:horizon_finance/features/transactions/services/transaction_service.dart';
+import 'package:horizon_finance/features/transactions/services/transaction_service.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'dart:developer' as developer;
 import 'package:supabase_flutter/supabase_flutter.dart' hide Provider, AuthState;
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:horizon_finance/features/transactions/models/transactions.dart';
 
 class RendaMensalScreen extends ConsumerStatefulWidget {
@@ -21,13 +19,12 @@ class _RendaMensalScreenState extends ConsumerState<RendaMensalScreen> {
   String _formattedValue = '0,00';  
   bool _isLoading = false;
   bool _checking = true;
+  int _selectedDay = 5;
   
   void _formatAndSetAmount(String text) {
-    developer.log(
-      'valor digitado: "$text"',
-      name: 'RendaMensalScreen',
-    );
-    String cleanText = text.replaceAll(RegExp(r'[^\d]'), ''); 
+    print('valor digitado: "$text"');
+
+    String cleanText = text.replaceAll(RegExp(r'[^\d]'), '');
 
     if (cleanText.isEmpty) {
       setState(() {
@@ -54,51 +51,52 @@ class _RendaMensalScreenState extends ConsumerState<RendaMensalScreen> {
       _formattedValue = '$integerPart,$fractionalPart';
     });
 
-    developer.log(
-      'Valor formatado: $_formattedValue',
-      name: 'RendaMensalScreen',
-    );
+    print('Valor formatado: $_formattedValue');
   }
 
-  // Converte o valor formatado para double
   double _getNumericValue() {
     String cleanValue = _formattedValue.replaceAll('.', '').replaceAll(',', '.');
     return double.tryParse(cleanValue) ?? 0.0;
   }
 
-  // Salva a renda mensal no backend
   Future<void> _saveAndContinue() async {
     final valor = _getNumericValue();
 
-    developer.log(
-      'Valor a ser salvo: R\$ ${valor.toStringAsFixed(2)}',
-      name: 'RendaMensalScreen',
-    );
+    if (valor <= 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Por favor, insira um valor válido maior que zero.'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+
+    print('Valor a ser salvo: R\$ ${valor.toStringAsFixed(2)}, Dia: $_selectedDay');
   
-    
     setState(() {
       _isLoading = true;
     });
     
     try {
-
       final transactionService = ref.read(TransactionServiceProvider);
-      final transaction = await transactionService.addTransaction(descricao: 'Renda Mensal', tipo: TransactionType.receita, valor: valor, categoriaId: 1, fixedTransaction: true, diaDoMes: 5, data: null);
-
-      developer.log(
-        'Transação salva com sucesso: $transaction',
-        name: 'RendaMensalScreen',
+      
+      final transaction = await transactionService.addTransaction(
+        descricao: 'Renda Mensal',
+        tipo: TransactionType.receita,
+        valor: valor,
+        categoriaId: 1,
+        fixedTransaction: true,
+        diaDoMes: _selectedDay,
       );
+
+      print('Template de renda mensal criado com sucesso: ${transaction.id}');
 
       if (mounted) {
         context.go('/despesas-fixas');
       }
     } catch (e) {
-      developer.log(
-        'ERRO AO SALVAR',
-        name: 'RendaMensalScreen',
-        error: e.toString(),
-      );
+      print('ERRO AO SALVAR: $e');
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -108,13 +106,44 @@ class _RendaMensalScreenState extends ConsumerState<RendaMensalScreen> {
           ),
         );
       }
-
     } finally {
       if (mounted) {
         setState(() {
           _isLoading = false;
         });
       }
+    }
+  }
+
+  Future<void> _selectDay(BuildContext context) async {
+    final int? picked = await showDialog<int>(
+      context: context,
+      builder: (context) {
+        return SimpleDialog(
+          title: const Text('Selecione o dia de recebimento'),
+          children: List.generate(31, (index) {
+            final day = index + 1;
+            return SimpleDialogOption(
+              onPressed: () => Navigator.pop(context, day),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8.0),
+                child: Text(
+                  'Dia $day',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: day == _selectedDay ? FontWeight.bold : FontWeight.normal,
+                    color: day == _selectedDay ? Theme.of(context).primaryColor : Colors.black87,
+                  ),
+                ),
+              ),
+            );
+          }),
+        );
+      },
+    );
+    
+    if (picked != null) {
+      setState(() => _selectedDay = picked);
     }
   }
 
@@ -201,11 +230,9 @@ class _RendaMensalScreenState extends ConsumerState<RendaMensalScreen> {
                   color: Colors.grey,
                 ),
               ),
-              const SizedBox(height: 60),
+              const SizedBox(height: 40),
               GestureDetector(
-                onTap: () {
-                  _focusNode.requestFocus();
-                },
+                onTap: () => _focusNode.requestFocus(),
                 child: Card(
                   elevation: 0,
                   shape: RoundedRectangleBorder(
@@ -240,7 +267,27 @@ class _RendaMensalScreenState extends ConsumerState<RendaMensalScreen> {
                   ),
                 ),
               ),
+              const SizedBox(height: 30),
+
+              TextFormField(
+                readOnly: true,
+                controller: TextEditingController(text: 'Dia $_selectedDay de cada mês'),
+                decoration: InputDecoration(
+                  labelText: 'Dia de Recebimento',
+                  prefixIcon: Icon(Icons.calendar_today, color: primaryBlue),
+                  border: const OutlineInputBorder(
+                    borderRadius: BorderRadius.all(Radius.circular(10)),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: BorderSide(color: primaryBlue, width: 2),
+                  ),
+                ),
+                onTap: () => _selectDay(context),
+              ),
+
               const SizedBox(height: 40),
+
               Opacity(
                 opacity: 0.0,
                 child: SizedBox(
@@ -252,6 +299,7 @@ class _RendaMensalScreenState extends ConsumerState<RendaMensalScreen> {
                   ),
                 ),
               ),
+
               ElevatedButton(
                 onPressed: _isLoading ? null : _saveAndContinue,
                 style: ElevatedButton.styleFrom(

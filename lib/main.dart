@@ -1,5 +1,5 @@
+// lib/main.dart
 import 'dart:async';
-import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -8,6 +8,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:horizon_finance/features/ai_insights/provider/gemini_api_key_provider.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:horizon_finance/screens/profile/settings_screen.dart';
+import 'package:horizon_finance/core/services/app_initializer.dart';
 
 final navigatorKey = GlobalKey<NavigatorState>();
 
@@ -42,7 +43,6 @@ class HorizonsFinanceApp extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     const Color primaryBlue = Color(0xFF0D47A1);
     
-    // Observa o provider do tema da settings_screen
     final themeMode = ref.watch(themeModeProvider);
 
     return MaterialApp.router(
@@ -97,35 +97,64 @@ class HorizonsFinanceApp extends ConsumerWidget {
   }
 }
 
-class AuthHandler extends StatefulWidget {
+class AuthHandler extends ConsumerStatefulWidget {
   const AuthHandler({super.key});
 
   @override
-  State<AuthHandler> createState() => _AuthHandlerState();
+  ConsumerState<AuthHandler> createState() => _AuthHandlerState();
 }
 
-class _AuthHandlerState extends State<AuthHandler> {
+class _AuthHandlerState extends ConsumerState<AuthHandler> {
   late final StreamSubscription<AuthState> _authSubscription;
+  bool _initialized = false;
 
   @override
   void initState() {
     super.initState();
+    
+    _initializeApp();
+    
     _authSubscription =
         Supabase.instance.client.auth.onAuthStateChange.listen((data) {
       final session = data.session;
       final event = data.event;
-      log('Auth event: $event, session: $session');
+
+      print('Auth event: $event, session: $session');
+
       if (event == AuthChangeEvent.passwordRecovery) {
-        log('Navigating to /password-reset');
+        print('Navigating to /password-reset');
         context.go('/password-reset');
       } else if (session != null) {
-        log('Navigating to /dashboard');
+        print('Navigating to /dashboard');
         context.go('/dashboard');
       } else {
-        log('Navigating to /login');
+        print('Navigating to /login');
         context.go('/login');
       }
     });
+  }
+
+  Future<void> _initializeApp() async {
+    try {
+      await Future.delayed(const Duration(milliseconds: 100));
+      
+      final appInitializer = ref.read(appInitializerProvider);
+      await appInitializer.initialize();
+      
+      if (mounted) {
+        setState(() {
+          _initialized = true;
+        });
+      }
+    } catch (e) {
+      print('Erro ao inicializar app: $e');
+
+      if (mounted) {
+        setState(() {
+          _initialized = true;
+        });
+      }
+    }
   }
 
   @override
