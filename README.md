@@ -93,7 +93,17 @@ O projeto adota uma **Arquitetura Orientada a Features (Feature-Driven Architect
 
 ---
 
-## 5. Diagramas Mermaid
+## 5. Integrantes do Projeto
+
+- Christian Rocha - [Perfil Github](https://github.com/ChristianSRocha),
+- Felipe Cândido - [Perfil Github](https://github.com/Felipe-candido),
+- Gabriel Souza - [Perfil Github](https://github.com/GabrielOSouza1),
+- Marcelo Ferreira - [Perfil Github](https://github.com/MirandaSoulcelo),
+- Matheus Matias - [Perfil Github](https://github.com/matheusoms).
+
+---
+
+## 6. Diagramas Mermaid
 
 ### a. Diagrama da Arquitetura do Projeto
 
